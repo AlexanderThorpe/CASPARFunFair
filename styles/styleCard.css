@@ -1,0 +1,96 @@
+body { 
+    background-image: url('../img/iso_dis_background.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% 100%;
+    border: 0px;
+    margin: 0px;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.points-counter {
+    font-size: 24px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.jspsych-btn {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    width: 217px;
+    height: 410px;
+}
+
+.scoreBox {
+    position: absolute;
+    display: inline;
+    bottom: 2%;
+    left: 44%;
+    width: 8%;
+    justify-content: center;
+    background: #c15678;
+    color: #ddcdf1;
+    padding: 5px 32px;
+    font-size: 1em;
+    text-rendering: auto;
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+    z-index: 20;
+}
+
+.instruction-container {
+    background-image: url('../img/iso_dis_instr.png');
+    background-size: cover;
+    padding: 90px;
+    color: black;
+    text-align: center;
+    font-size: 18pt;
+    width: 570px;
+    height: 345px;
+}
+
+/* .instruction-nav-btn {
+    display: inline-block;
+    height: 30px;
+    width: 100px;
+    padding: 5px 10px;
+    border: 1px solid #000;
+    margin: 5px;
+    cursor: pointer;
+    background-color: #fff;
+    color: #000;
+    font-size: 16px;
+} */
+
+/* .instruction-nav-btn:hover {
+    background-color: #f0f0f0;
+} */
+
+.confirm-button {
+    background-color: #555555;
+    border: none;
+    color: white;
+    font-size: 1.2em;
+    height: 2em;
+    width: 8em;
+    padding: 5px 10px;
+    border: 1px solid #000;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.confirm-button:hover {
+    background-color: #6f6f6f;
+}
+
+.redirect {
+    position: absolute;
+    left: 25%;
+    width: 50%;
+    top: 30%;
+    height: auto;
+}

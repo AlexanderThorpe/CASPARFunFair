@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Introduction</title>
+        <link href="styles/style.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karla:400,700">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald:300,400">
+    </head>
+
+    <body>
+
+        <script src="/assets/javascripts/jatos.js"></script>
+
+        <br /><br /><br /><br />
+
+        <div id="textFrame" class="instruct-page" style="padding: 5em; visibility: hidden">
+
+            <p>
+                <span>This experiment should be completed on a laptop or desktop computer, using a mouse,
+                    rather than a mobile device or a device with a touchscreen. We also recommend you maximise your browser window.<br>
+                    <b>Warning: this task contains gambling imagery.</b><o:p></o:p>
+                </span>
+            </p>
+
+            <p >
+                <span>If you want to leave now and come back to the experiment later, you can close this window
+                    and reload it when you are ready to continue.
+                </span>
+            </p>
+
+            <p>
+                <span>We hope you enjoy taking part in the experiment. Try to have fun completing the tasks!<br>
+                    Please complete the tasks in good faith and don't try to take any shortcuts. We have ways of knowing if you did!
+                </span>
+            </p>
+            
+            <br /><br /><br />
+            <div id="continueFrame" class="instruct-page" style="visibility: hidden">
+                <p>
+                    <span id ="continue" style='color:blue'><b>If you are ready to continue, click here to continue to the experiment.</b>
+                    </span>
+                </p>
+            </div>
+        </div>  
+
+        <script>
+
+             // What to do when jatos.js is finished initializing
+             jatos.onLoad(function() {
+                username = jatos.urlQueryParameters.survey_code;
+                cohort = jatos.urlQueryParameters.pop;
+                document.getElementById("textFrame").style.visibility = "visible";
+            });
+
+            var username;
+            var cohort;
+            const nCompleted = 0;
+            const taskList = {"cards": false, "cases": false, "ducks": false, "lotto": false, "marbles": false, "slots": false, "wason": false, "words": false};
+            const cameFrom = 'Intro';
+            const finished = false;
+            const totalPoints = 0;
+            var rawIndex = [1, 2, 3, 4, 5, 6, 7, 8];
+            const tentIndex = [0, 0, 0, 0, 0, 0, 0, 0];
+            const triviaIndex = [];
+            const triviaMiss = 0;
+            const slotGroup = Math.floor(Math.random() * 2 + 1);
+            const lGroups = ['gf', 'hh'];
+            const groupVal = Math.floor(Math.random() + 0.5)
+            const lottoGroup = lGroups[groupVal];
+            const altFlag = 0;
+            const waitTime = 10000; // Set to 10000 for deployment
+            const taskIndex = shuffle(rawIndex);
+            setTimeout(()=>{showContinue()}, waitTime);
+
+            // Temporary
+            document.getElementById("textFrame").style.visibility = "visible";
+
+            // Shuffle elements in an array
+            function shuffle(array) {
+                let currentIndex = array.length, temporaryValue, randomIndex;
+
+                while (0 !== currentIndex) {
+
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex -= 1;
+
+                    temporaryValue = array[currentIndex];
+                    array[currentIndex] = array[randomIndex];
+                    array[randomIndex] = temporaryValue;
+                }
+                return array;
+            }
+
+            // Show the "continue" text
+            function showContinue() {
+                document.getElementById("continueFrame").style.visibility = "visible";
+                document.getElementById("continue").style.cursor = "pointer";
+                document.getElementById("continue").onclick = function() {nextComponent()};
+            }
+
+            function nextComponent() {
+                const studySessionData = {"username": username, "cohort": cohort, "nCompleted": nCompleted, "cameFrom": cameFrom, "totalPoints": totalPoints, "finished": finished, "nStars": 0, "altFlag": altFlag, "completedTasks": taskList, "taskIndex": taskIndex, "tentsDone": tentIndex, "triviaIndex": triviaIndex, "lottoGroup": lottoGroup, "slotGroup": slotGroup, "triviaMiss": triviaMiss};  
+                jatos.studySessionData = studySessionData;
+                header = "Username\tCohort\n";
+                savedata = username + "\t" + cohort + "\n";
+                output_txt = header;
+                output_txt += savedata.toString();
+                // Uncomment below for JATOS deployment
+                jatos.submitResultData(output_txt)
+                    .then(() => jatos.startComponentByPos(2));
+            }
+        </script>
+
+    </body>
+
+</html>

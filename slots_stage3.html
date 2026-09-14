@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Slot Machine</title>
+        <link href="styles/style.css" rel="stylesheet" />
+        <link href="styles/styleSlot.css" rel="stylesheet" />
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karla:400,700">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald:300,400">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>    
+    <body>
+        <div id="instructionBox" class="instruct-page customfont" style="visibility: hidden">
+            <p>
+                <span id="instructions">Welcome to the slot machine!<br>
+                Match three of any symbol and win 20 points!</span>
+            </p>
+            <div class="confirm-div" id="instructConfirm">  
+                <button class="confirm-button customfont" id="confirm" onclick="clearInstruct('instructionBox')">Continue</button>
+            </div>
+        </div>
+
+        <div class="slots" id="slots" style="visibility: hidden">
+            <div class="reel"></div>
+            <div class="reel"></div>
+            <div class="reel"></div>
+        </div>
+
+        <div class="rainbow" id="rainbow" style="visibility: hidden">
+            <img class ="rainbowImg" id="rainbowImg" src="img/rainbow_frame.png">
+        </div>
+
+        <div class="banditArm" id="banditArm" style="visibility: hidden">
+            <img class="armImg" id="arm" onclick="trialStarter(trial)" src="img/banditArmUp.png">
+        </div>
+
+        <div class="exitBox" id="exitBox" style="visibility: hidden">
+            <button class="exit-button customfont" id="exitButton" onclick="blockEnder()">EXIT</button>
+        </div>
+
+        <div id="scoreBox" class="scoreBox customfont" style="visibility: hidden">
+            <p>
+                <span id="score">POINTS: 0</span>
+            </p>
+        </div>
+
+        <div id="nextPage" class="redirect customfont" style="visibility: hidden">
+            <p>
+                Well done, you've finished this game!<br>
+                Now let's play another game.
+            </p>
+        </div>
+
+        <div class="loading customfont" style="background-image: url('img/loading_page1.jpg')">
+        </div>
+
+        <div class="prizeDiv" id="prizeDiv" style="background-image: url('img/prizeHead.png'); visibility: hidden">
+            <div class="prizeHead">
+            </div>
+            <div class="starDiv" style="background-image: url('img/starBack.png'); left:29%">
+                <img class="prizeImg" id="starImg">
+            </div>
+            <!-- <div class="teddyDiv" style="left: 27%">
+                <img class="prizeImg" id="teddyImg">
+                <img class="prizeImg" id="nameTag">
+            </div> -->
+        </div>
+        
+        
+        <script src="/assets/javascripts/jatos.js"></script>
+
+        <script>
+
+            // What to do when jatos.js is finished initializing
+            //UNCOMMENT FOR JATOS DEPLOYMENT
+            jatos.onLoad(function() {
+                username = jatos.studySessionData["username"];
+                studySessionData = jatos.studySessionData;
+            });
+
+            $(window).bind("beforeunload", function(){
+                return confirm(); 
+            });
+
+            var username;
+            var slotGroup;
+            var studySessionData;
+            var nTrials = 40;
+            var trial = 1;
+            var trialVal;
+            var trialIndexes;
+            var nIcons = 9;
+            var winRate = 0.1;
+            var NMRateOptions = [0.45, 0.1];
+            var NMRate = 0.25;
+            var score = 0;
+            var winnings = 20;
+            var blockData = new Array();
+            var dataOutput = [];
+            var output_txt;
+            var winHeight = innerHeight;
+            var winWidth = innerWidth;
+            var slotWidth;
+            var altFlag = 0;
+            var flasher;
+            var flashDiv = undefined;
+            var slotsImg = ['img/loading_page1.jpg', 'img/prizeHead.png', 'img/prizeHead.png', 'img/slotBack.jpg', 'img/slotBack_multiplenum.jpg', 'img/banditArmDown.png', 'img/banditArmUp.png', 'img/slotreel.webp',
+                'img/starBack.png', 'img/star1.png', 'img/star2.png', 'img/star3.png', 'img/star4.png', 'img/star5.png', 'img/star6.png', 'img/star7.png', 'img/star8.png'];
+
+            preLoader(slotsImg);
+
+            // var icon_height = Math.round(winHeight / 12);
+            var icon_height = Math.max(Math.round(winHeight / 12), Math.round(winWidth / 24.3));
+            const num_icons = 9;
+            const time_per_icon = 100;
+            const indexes = [0, 0, 0];
+
+            // EXPERIMENTAL FLOW FUNCTIONS
+            waitForJATOS();
+
+            // Check whether JATOS has loaded before initialising
+            function waitForJATOS() {
+                let name = username;
+                if (name !== undefined) {
+                    init();
+                }
+                else {
+                    setTimeout(waitForJATOS, 300);
+                }
+            }
+
+            // Initialise experiment
+            function init() {
+                $(".loading").fadeOut("slow");
+                if (studySessionData.triviaMiss >= 3) {
+                    document.body.style.backgroundImage = 'url(img/slotBack_multiplenum.jpg)'
+                }
+                document.getElementById("prizeDiv").style.visibility = 'visible';
+                document.getElementById("scoreBox").style.visibility = 'visible';
+                document.getElementById("slots").style.visibility = 'visible';
+                document.getElementById("banditArm").style.visibility = 'visible';
+                // Add stars
+                document.getElementById("starImg").src = "img/star" + studySessionData.nStars + ".png";
+                slotGroup = studySessionData.slotGroup;
+                rescaler(icon_height);
+                // NMRateChoice();
+                // Show the instructions here
+                document.getElementById("instructionBox").style.visibility = "visible";
+                document.getElementById("arm").onclick = null;
+            }
+
+            // Clear instruction screen
+            function clearInstruct(elemId) {
+                test = document.getElementById(elemId);
+                test.style.visibility = "hidden";
+                document.getElementById("arm").onclick = function() {trialStarter(trial)};
+                if (trial >= nTrials) {
+                    document.getElementById("exitButton").onclick = function() {blockEnder()};
+                }
+            }
+
+            // Initialise each trial
+            function trialStarter(trial) {
+                document.getElementById("arm").src = "img/banditArmDown.png";
+                document.getElementById("arm").onclick = null;
+                document.getElementById("exitButton").onclick = null;
+                trialVal = outcomeChoice(winRate, NMRate);
+                trialIndexes = indexMaker(trialVal);
+                rollAll(trialIndexes);
+            }
+
+            // Finish each trial
+            function trialEnder() {
+                if (trialVal == 'winner') {
+                    document.querySelector(".slots").classList.remove('win2');
+                    document.querySelector(".rainbow").classList.remove('win3');
+                }
+                pushData();
+                document.getElementById("arm").src = "img/banditArmUp.png";
+                document.getElementById("arm").onclick = function() {trialStarter(trial)};
+                document.getElementById("exitButton").onclick = function() {blockEnder()};
+                if (trial == nTrials) {
+                    trial++;
+                    secondPhase();
+                } else {
+                    trial++;
+                }
+                if (altFlag == 1) {
+                    blockEnder();
+                }
+            }
+
+            // Set up for the second phase of the experiment
+            function secondPhase() {
+                winRate = 0;
+                document.getElementById("arm").src = "img/banditArmUp.png";
+                document.getElementById("arm").onclick = null;
+                document.getElementById("exitButton").onclick = null;
+                document.getElementById("instructions").innerText = "You can now leave the slot machine if you like by clicking the 'Exit' button.\nHowever, you can keep playing and try to hit the jackpot.\nIf you win, we will remove half the trials from the remaining tasks,\ncutting the time it takes to complete them in half.";
+                document.getElementById("instructionBox").style.visibility = "visible";
+                document.getElementById("exitBox").style.visibility = "visible";
+                document.getElementById("confirm").onclick = function() {clearInstruct("instructionBox")};
+
+            }
+
+            function blockEnder() {
+                document.getElementById("arm").src = "img/banditArmUp.png";
+                document.getElementById("arm").onclick = null;
+                dataSave();
+                endOfExperiment();
+            }
+
+            // End the experiment
+            function endOfExperiment() {
+                $(window).unbind("beforeunload");
+                studySessionData.nCompleted++;
+                studySessionData.totalPoints = studySessionData.totalPoints + score;
+                taskIndex = studySessionData.taskIndex;
+                studySessionData.taskIndex = taskIndex.slice(1);
+
+                studySessionData.completedTasks["slots"] = true;
+                studySessionData.cameFrom = "slots";
+
+                // Uncomment below for JATOS deployment
+                jatos.studySessionData = studySessionData;
+
+                output_txt = "Username" + "," + "Task" + "," + "Group" + "," + "Near Miss Rate" + "," + "Trial" + "," + "Outcome" + "," + "Reel 1 Index" + "," + "Reel 2 Index" + "," + "Reel 3 Index\n";
+
+                for (var i = 0; i < dataOutput.length; i++) {
+                    output_txt += dataOutput[i].toString() + "\n";
+                }
+
+                var expVarTxt = output_txt;
+                var expSendVariables = expVarTxt;
+
+                if (altFlag == 1) {
+                    document.getElementById("nextPage").innerText = "Hey you! Stop trying to un-rig our rigged game!\nJust get outta here, and don't do it again.";
+                }
+
+                document.getElementById("nextPage").style.visibility = 'visible';
+
+                // Uncomment below for JATOS deployment
+                setTimeout(() => {
+                    jatos.uploadResultFile(expSendVariables, "ID" + username + "Slots_Data.csv")
+                    .then(() => jatos.startComponentByPos(11));
+                }, 3000);
+            }
+
+            // DATA FUNCTIONS
+
+            // Randomly assign participant to a near-miss rate condition
+            function NMRateChoice() {
+                let checkVal = Math.random();
+                if (checkVal <= 0.5) {
+                    NMRate = NMRateOptions[0];
+                } else {
+                    NMRate = NMRateOptions[1];
+                }
+            }
+
+            // Choose outcome for this trial
+            function outcomeChoice(win, nearMiss) {
+                let rollVal = Math.random();
+                if (rollVal >= 1 - win) {
+                    return 'winner';
+                }
+                if (rollVal <= nearMiss) {
+                    return 'nearMisser';
+                }
+                return 'loser';
+            }
+
+            // Make reel index vector for this trial
+            function indexMaker(outcome) {
+                let indices;
+                targetIcon = Math.floor(Math.random() * 9);
+                switch (outcome) {
+                    case 'winner':
+                        indices = [targetIcon, targetIcon, targetIcon];
+                        break;
+                    case 'nearMisser':
+                        let upOrDown = Math.random();
+                        let missVal;
+                        if (upOrDown <= 0.5) {
+                            missVal = targetIcon - 1;
+                        } else {
+                            missVal = targetIcon + 1;
+                        }
+                        
+                        if (missVal < 0) {
+                            missVal = 8;
+                        } else if (missVal > 8) {
+                            missVal = 0;
+                        }
+                        indices = [targetIcon, targetIcon, missVal];
+                        break;
+                    case 'loser':
+                        let index2 = (targetIcon + Math.floor(Math.random() * nIcons)) % nIcons;
+                        if (index2 == targetIcon) {
+                            index2 = ((index2 - 2) + nIcons) % nIcons;
+                        } else if (index2 - targetIcon == 1) {
+                            index2 = ((index2 + 1) + nIcons) % nIcons;
+                        } else if (index2 - targetIcon == -1) {
+                            index2 = ((index2 - 1) + nIcons) % nIcons;
+                        }
+                        let index3 = Math.floor(Math.random() * nIcons);
+                        indices = [targetIcon, index2, index3];
+                        break;
+                    default: // This shouldn't happen
+                        console.log('indexMaker switch broken');
+                }
+                return indices;
+            }
+
+            // Push data per trial
+            function pushData() {
+                let thisTask = studySessionData.nCompleted + 1
+                blockData.push([username, thisTask, slotGroup, NMRate, trial, trialVal, trialIndexes[0], trialIndexes[1], trialIndexes[2]]);
+            }
+
+            // Save data for output as CSV
+            function dataSave() {
+                usernameVec = [];
+                taskVec = [];
+                condVec = [];
+                trialVec = [];
+                outcomeVec = [];
+                reel1Vec = [];
+                reel2Vec = [];
+                reel3Vec = [];
+
+                for (var i = 0; i < blockData.length; i++) {
+                    usernameVec.push(blockData[i][0]);
+                    taskVec.push(blockData[i][1]);
+                    condVec.push(blockData[i][2]);
+                    trialVec.push(blockData[i][3]);
+                    outcomeVec.push(blockData[i][4]);
+                    reel1Vec.push(blockData[i][5]);
+                    reel2Vec.push(blockData[i][6]);
+                    reel3Vec.push(blockData[i][7]);
+                    
+                    dataOutput.push(usernameVec[i] + "," + taskVec[i] + "," + condVec[i] + "," + trialVec[i] + "," + outcomeVec[i] + "," +  reel1Vec[i] + "," + reel2Vec[i] + "," + reel3Vec[i]);
+                }
+            }
+
+            // STIMULUS FUNCTIONS
+
+            // Set up teddy image
+            function teddyPicker(vars) {
+                let source;
+                if (vars.acc2) {
+                    source = "img/teddy_everything.png";
+                    return source;
+                }
+                if (vars.acc1) {
+                    source = "img/teddy_lollipop.png";
+                    return source;
+                }
+                source = "img/teddy_name.png";
+                return source;
+            }
+
+            function rescaler(i_h) {
+                document.getElementsByClassName("slots")[0].style.height = i_h * 3;
+                let slotWidth = document.getElementsByClassName("slots")[0].offsetWidth + 23.7;
+                let armLeft = Math.min(winWidth * 0.5 + (0.62 * slotWidth), winWidth * 0.5 + (slotWidth * 0.5 + (40 * (1920 / winWidth))));
+                document.getElementsByClassName("banditArm")[0].style.left = armLeft;
+                document.getElementsByClassName("reel")[0].style.height = i_h * 3;
+                document.getElementsByClassName("reel")[1].style.height = i_h * 3;
+                document.getElementsByClassName("reel")[2].style.height = i_h * 3;
+                document.getElementsByClassName("reel")[0].style.backgroundSize = i_h + "px " + i_h * 9 + "px";
+                document.getElementsByClassName("reel")[1].style.backgroundSize = i_h + "px " + i_h * 9 + "px";
+                document.getElementsByClassName("reel")[2].style.backgroundSize = i_h + "px " + i_h * 9 + "px";
+            }
+
+            function flashFunc() {
+                let oldTime = document.querySelector(".slots").style.animationDuration;
+                oldTime = parseInt(oldTime.substring(0, oldTime.length - 2));
+                let newTime = oldTime + 3;
+                document.querySelector(".slots").style.animationDuration = newTime + 'ms';
+            };
+
+            addEventListener("resize", (event) => {});
+                onresize = (event) => {
+                    winWidth = innerWidth;
+                    winHeight = innerHeight;
+                    // icon_height = Math.round(winHeight / 12);
+                    icon_height = Math.max(Math.round(winHeight / 12), Math.round(winWidth / 24.3));
+                    rescaler(icon_height);
+                };
+            
+            // Roll one reel
+            const roll = (reel, offset = 0, target) => {	
+                // Minimum of 2 + the reel offset rounds
+                let delta = (offset + 2) * num_icons + Math.round(Math.random() * num_icons); 
+                let slowVal = 1;
+                if ((trialVal == 'winner' | trialVal == 'nearMisser') & offset == 2 & slotGroup == 1) {
+                    slowVal = 2;
+                }
+                
+                const style = getComputedStyle(reel),
+                                // Current background position
+                                backgroundPositionY = parseFloat(style["background-position-y"]);
+                
+                // calculate delta to target
+                const currentIndex = backgroundPositionY / icon_height;
+                delta = target - currentIndex + (offset + 2) * (num_icons * slowVal);
+
+                // Return promise so we can wait for all reels to finish
+                return new Promise((resolve, reject) => {
+                    
+                    
+                    const
+                                // Target background position
+                                targetBackgroundPositionY = backgroundPositionY + delta * icon_height,
+                                // Normalized background position, for reset
+                                normTargetBackgroundPositionY = targetBackgroundPositionY%(num_icons * icon_height);
+                    
+                    // Delay animation with timeout, for some reason a delay in the animation property causes stutter
+                    setTimeout(() => { 
+                        // Set transition properties ==> https://cubic-bezier.com/#.41,-0.01,.63,1.09
+                        reel.style.transition = `background-position-y ${(8 + 1 * delta) * time_per_icon}ms cubic-bezier(.15,0,.63,1.09)`;
+                        // Set background position
+                        reel.style.backgroundPositionY = `${backgroundPositionY + delta * icon_height}px`;
+                    }, offset * 150);
+                        
+                    // After animation
+                    setTimeout(() => {
+                        // Reset position, so that it doesn't get higher without limit
+                        reel.style.transition = `none`;
+                        reel.style.backgroundPositionY = `${normTargetBackgroundPositionY}px`;
+                        // Resolve this promise
+                        resolve(delta%num_icons);
+                        if ((trialVal == 'winner' | trialVal == 'nearMisser') & offset == 1 & slotGroup == 1) {
+                            document.querySelector(".slots").classList.add("susp");
+                            document.querySelector(".slots").style.animationDuration = '200ms';
+                            flashDiv = document.querySelector(".slots");
+                            flashDiv.addEventListener('animationiteration', flashFunc);
+                        }
+                    }, (8 + 1 * delta) * time_per_icon + offset * 150);
+                    
+                });
+            };
+
+            // Roll all reels
+            function rollAll(trialIndexes) {
+                
+                const reelsList = document.querySelectorAll('.slots > .reel');
+                
+                // rig the outcome for every 3rd roll, if targets is set to null, the outcome will not get rigged by the roll function
+                
+                const targets = trialIndexes;
+                
+                Promise
+                    
+                    // Activate each reel, must convert NodeList to Array for this with spread operator
+                    .all( [...reelsList].map((reel, i) => roll(reel, i, targets[i])) )	
+                    
+                    // When all reels done animating (all promises solve)
+                    .then((deltas) => {
+                        clearInterval(flasher);
+                        document.querySelector(".slots").classList.remove("susp");
+                        if (flashDiv != undefined) {
+                            flashDiv.removeEventListener("animationiteration", flashFunc);
+                            flashDiv = undefined;
+                        }
+                        // add up indexes
+                        deltas.forEach((delta, i) => indexes[i] = (indexes[i] + delta)%num_icons);
+                        // Win conditions
+                        if (trialVal == 'winner') {
+                            const winCls = "win2";
+                            document.querySelector(".slots").classList.add(winCls);
+                            document.querySelector(".slots").style.animationDuration = '200ms';
+                            document.querySelector(".rainbow").classList.add('win3');
+                            if (trial > nTrials) {
+                                altFlag = 1;
+                            }
+                            winnerAnim(2000);
+                        } else {
+                            trialEnder();
+                        }
+                    });
+            };
+
+            function winnerAnim(timer) {
+                let frameScore = score;
+                score = score + winnings;
+                frameInt = timer / (score - frameScore);
+                framesLeft = timer / frameInt;
+                let countdownTimer = setInterval(function(){
+                framesLeft--;
+                frameScore++;
+                document.getElementById("score").innerText = "POINTS: " + frameScore;
+                if(framesLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    trialEnder();
+                }
+                },frameInt);
+            }
+
+            // Preload images
+            function preLoader(imgList) {
+                for (i = 0; i < imgList.length; i++) {
+                    let img = new Image();
+                    img.src = imgList[i];
+                }
+            }
+
+        </script>
+    </body>
+
+</html>

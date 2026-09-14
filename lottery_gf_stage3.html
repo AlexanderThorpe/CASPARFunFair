@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Lottery Game</title>
+        <script src="jspsych-8.0/jspsych.js"></script>
+        <script src="jspsych-8.0/plugin-html-keyboard-response.js"></script>
+        <script src="jspsych-8.0/plugin-image-button-response.js"></script>
+        <script src="jspsych-8.0/plugin-canvas-button-response.js"></script>
+        <script src="jspsych-8.0/plugin-preload.js"></script>
+        <link rel="stylesheet" href="jspsych-8.0/jspsych.css">
+        <link href="styles/style.css" rel="stylesheet" />
+        <link href="styles/styleLottoGF.css" rel="stylesheet" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <style>
+
+            body { 
+                background-image: url('img/lottery_background.jpg');
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+                background-size: 100% 100%;
+                border: 0px;
+                margin: 0px;
+                -webkit-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+
+            .jspsych-btn {
+                border: 5px solid transparent;
+            }
+
+            .jspsych-btn:hover {
+                border-color: red;
+            }
+        </style>
+        
+    </head>
+    
+    <body>
+        <div class="last-result" id="last-result"></div>
+        <button class="results-btn" onclick="displayResults()">History</button>
+
+        <!-- New points container -->
+        <div class="points-container customfont" id="points-container" style="visibility: hidden">
+            <span id="points-display">0</span>
+        </div>
+
+        <div class="loading customfont" style="background-image: url('img/loading_page1.jpg'); z-index: 100;">
+        </div>
+
+        <div class="prizeDiv" id="prizeDiv" style="background-image: url('img/prizeHead.png')">
+            <div class="prizeHead">
+            </div>
+            <div class="starDiv" style="background-image: url('img/starBack.png'); left: 29%">
+                <img class="prizeImg" id="starImg">
+            </div>
+            <!-- <div class="teddyDiv" style="left: 27%">
+                <img class="prizeImg" id="teddyImg">
+                <img class="prizeImg" id="nameTag">
+            </div> -->
+        </div>
+
+        <div id="nextPage" class="redirect customfont" style="visibility: hidden">
+            <p>
+                Well done, you've finished this game!<br>
+                Now let's play another game.
+            </p>
+        </div>
+
+        <script src="/assets/javascripts/jatos.js"></script>
+        <script>
+            // What to do when jatos.js is finished initializing
+            //UNCOMMENT FOR JATOS DEPLOYMENT
+            jatos.onLoad(function() {
+                studySessionData = jatos.studySessionData;
+                username = studySessionData["username"];
+            });
+
+            $(window).bind("beforeunload", function(){
+                return confirm(); 
+            });
+
+            var studySessionData;
+            var username;
+            var dataOutput = [];
+            var condition;
+            var totalPoints = 0;
+            var timeline;
+            var isSpecial = false;
+            var specialCount = 0;
+            var special_sequence_inserted = false;
+            var specialStart = Math.floor(Math.random() * 30) + 19;
+
+             // Load images
+            const images = [
+                'img/card_0.jpg', 'img/card_1.jpg', 'img/card_2.jpg', 'img/card_3.jpg', 'img/card_4.jpg',
+                'img/card_5.jpg', 'img/card_6.jpg', 'img/card_7.jpg', 'img/card_8.jpg', 'img/card_9.jpg'
+            ];
+
+            const jsPsych = initJsPsych();
+
+            // Let's preload all the images so that they aren't loaded every time
+            jsPsych.pluginAPI.preloadImages([
+                    'img/lottery_background.jpg', 'img/lottery_background_multiplenum.jpg', 'img/card_0.jpg', 'img/card_1.jpg', 'img/card_2.jpg', 'img/card_3.jpg', 'img/card_4.jpg',
+                    'img/card_5.jpg', 'img/card_6.jpg', 'img/card_7.jpg', 'img/card_8.jpg', 'img/card_9.jpg',
+                    'img/feedback_0.png', 'img/feedback_1.png', 'img/feedback_2.png', 'img/feedback_3.png', 'img/feedback_4.png',
+                    'img/feedback_5.png', 'img/feedback_6.png', 'img/feedback_7.png', 'img/feedback_8.png', 'img/feedback_9.png',
+                    'img/win.png', 'img/lotto_choose.png', 'img/instructions_training.jpg', 'img/instructions_1.jpg', 'img/instructions_2nd.jpg',
+                    'img/begin_button.png'
+                ]);
+
+            var lottoImg = ['img/loading_page1.jpg', 'img/prizeHead.png', 'img/starBack.png', 'img/star1.png', 'img/star2.png', 'img/star3.png', 'img/star4.png', 'img/star5.png', 'img/star6.png',
+            'img/star7.png', 'img/star8.png'];
+
+            preLoader(lottoImg);
+
+            // UNCOMMENT FOR JATOS DEPLOYMENT
+            waitForJATOS();
+            
+
+            // Check whether JATOS has loaded before initialising
+            function waitForJATOS() {
+                let name = username;
+                if (name !== undefined) {
+                    init();
+                }
+                else {
+                    setTimeout(waitForJATOS, 300);
+                }
+            }
+
+            // Set up teddy image
+            function teddyPicker(vars) {
+                let source;
+                if (vars.acc2) {
+                    source = "img/teddy_everything.png";
+                    return source;
+                }
+                if (vars.acc1) {
+                    source = "img/teddy_lollipop.png";
+                    return source;
+                }
+                source = "img/teddy_name.png";
+                return source;
+            }
+
+            // Preload images
+            function preLoader(imgList) {
+                for (i = 0; i < imgList.length; i++) {
+                    let img = new Image();
+                    img.src = imgList[i];
+                }
+            }
+
+            // Initialise the experiment
+            function init() {
+                $(".loading").fadeOut("slow");
+                if (studySessionData.lottoGroup == 'gf') {
+                    condition = 'n1';
+                } else {
+                    condition = 'n2';
+                }
+                if (studySessionData.triviaMiss >= 3) {
+                    document.body.style.backgroundImage = 'url(img/lottery_background_multiplenum.jpg)'
+                }
+                makeTimeline();
+                totalPoints = studySessionData.totalPoints;
+                updatePoints(0);
+                document.getElementById("points-container").style.visibility = 'visible';
+                document.getElementById("starImg").src = "img/star" + studySessionData.nStars + ".png";
+                // Start experiment
+                jsPsych.run(timeline);
+            }
+
+            // Shuffle elements in an array
+            function shuffle(array) {
+                let currentIndex = array.length, temporaryValue, randomIndex;
+
+                while (0 !== currentIndex) {
+
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex -= 1;
+
+                    temporaryValue = array[currentIndex];
+                    array[currentIndex] = array[randomIndex];
+                    array[randomIndex] = temporaryValue;
+                }
+                return array;
+            }
+
+            // Helper function to generate random integer between min and max
+            function getRandomInt(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            let lastFiveResults = [];
+
+            function displayResults() {
+                let history = lastFiveResults.map(result => `Winning Numbers: ${result.winningNumbers} | Outcome: ${result.outcome}`).join('\n');
+                alert(`Last 5 Results:\n${history}`);
+            }
+
+            function updatePoints(points) {
+                totalPoints += points;
+                document.getElementById('points-display').innerText = totalPoints;
+            }
+
+            function updateLastFiveResults(winningNumbers, outcome) {
+                if (lastFiveResults.length >= 5) lastFiveResults.shift();
+                lastFiveResults.push({ winningNumbers, outcome });
+                const lastResult = lastFiveResults[lastFiveResults.length - 1];
+                document.getElementById('last-result').innerText = `Last Winning Numbers: ${lastResult.winningNumbers} | Outcome: ${lastResult.outcome}`;
+            }
+
+            // Instructions
+            const instructions = {
+                type: jsPsychImageButtonResponse,
+                stimulus: function () {
+                    let instructString = 'img/instructions_1.jpg';
+                    return instructString;
+                },    
+                button_html: function () {
+                    return '<button class="jspsych-btn" style="width: 200px; height: 110px"><img src="img/begin_button.png"></button>';
+                },
+                choices: ['Begin']
+            };
+
+            // Function to draw the stimulus image for n1 condition
+            function drawStimulusN1(canvas) {
+                const context = canvas.getContext('2d');
+                let img = new Image();
+                img.src = 'img/lotto_choose.png';
+                img.onload = function () {
+                    context.drawImage(img, 305, 70, 380, 420);
+                }
+            }
+
+            // Function to draw the stimulus images for n2 condition
+            function drawStimulusN2(canvas) {
+                const context = canvas.getContext('2d');
+                let img = new Image();
+                img.src = 'img/lotto_choose.png';
+                img.onload = function () {
+                    context.drawImage(img, 305, 70, 380, 420);
+                }
+            }
+
+            // Define phases and monitor conditions
+            const initial_phase_n1 = [];
+            const special_sequence_n1 = [];
+            const monitored_phase_n1 = [];
+
+            const initial_phase_n2 = [];
+            const special_sequence_n2 = [];
+            const monitored_phase_n2 = [];
+
+            // Declare new phase 2 variables
+            //let monitored_phase_2_n1;
+            //let monitored_phase_2_n2;
+
+            // Generate the random winning numbers sequence for n1 condition
+            const winning_numbers_sequence_n1 = [];
+            for (let i = 0; i < 100; i++) {
+                winning_numbers_sequence_n1.push(getRandomInt(0, 9));
+            }
+
+            // Generate the random winning numbers sequence for n2 condition
+            const winning_numbers_sequence_n2 = [];
+            for (let i = 0; i < 100; i++) {
+                let num1, num2;
+                do {
+                    num1 = getRandomInt(0, 9);
+                    num2 = getRandomInt(0, 9);
+                } while (num1 === num2);
+                winning_numbers_sequence_n2.push([num1, num2]);
+            }
+
+            var earlyWins = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            shuffle(earlyWins);
+            earlyWins = earlyWins.slice(0, 3);
+
+            // Initial Phase: 10 Trials with 3 Wins Randomly Placed
+            for (let i = 0; i < 10; i++) {
+                const trial_n1 = {
+                    type: jsPsychCanvasButtonResponse,
+                    stimulus: drawStimulusN1,
+                    canvas_size: [700, 700],
+                    choices: images,
+                    button_html: function (choice) {
+                        return '<button class="jspsych-btn"><img src="' + choice + '" width="50px" height="68px"></button>';
+                    },
+                    on_finish: function (data) {
+                        const choice = images[data.response].split('_')[1].split('.')[0];
+                        let winning_number_found = false;
+                        let loser_number = [];
+                        while (winning_number_found == false) {
+                            new_num = getRandomInt(0, 9);
+                            winning_number_found = new_num != choice;
+                        }
+                        loser_number.push(new_num);
+                        const winning_number = (earlyWins.includes(i)) ? choice : loser_number[0];
+                        const outcome = choice == winning_number ? 'W' : 'L';
+                        data.winning_number = winning_number;
+                        data.choice = choice;
+                        data.outcome = outcome;
+                        data.special_sequence = false;
+                        updateLastFiveResults(winning_number, outcome);
+
+                        // Update points if the guess is correct
+                        if (outcome === 'W') {
+                            updatePoints(20);
+                        }
+                    }
+                };
+                initial_phase_n1.push(trial_n1);
+
+                const feedback_n1 = {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        const last_trial = jsPsych.data.get().last(1).values()[0];
+                        const outcome = last_trial.choice == last_trial.winning_number ? 'W' : 'L';
+                        const feedback_image = 'img/feedback_' + last_trial.winning_number + '.png';
+                        let win_image_html = '';
+                        if (outcome === 'W') win_image_html = '<img src="img/win.png" class="win-image">';
+                        return '<div><img src="' + feedback_image + '" style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);">' + win_image_html + '</div>';
+                    },
+                    choices: 'NO_KEYS',
+                    trial_duration: 1000
+                };
+                initial_phase_n1.push(feedback_n1);
+
+                const trial_n2 = {
+                    type: jsPsychCanvasButtonResponse,
+                    stimulus: drawStimulusN1,
+                    canvas_size: [700, 700],
+                    choices: images,
+                    button_html: function (choice) {
+                        return '<button class="jspsych-btn"><img src="' + choice + '" width="50px" height="68px"></button>';
+                    },
+                    on_finish: function (data) {
+                        const choice = Number(images[data.response].split('_')[1].split('.')[0]);
+                        let winning_number_found = false;
+                        let loser_number = [];
+                        while (winning_number_found == false) {
+                            new_num1 = getRandomInt(0, 9);
+                            winning_number_found = new_num1 != choice;
+                        }
+                        loser_number.push(new_num1);
+                        winning_number_found = false;
+                        while (winning_number_found == false) {
+                            new_num2 = getRandomInt(0, 9);
+                            winning_number_found = new_num2 != choice & new_num2 != new_num1;
+                        }
+                        loser_number.push(new_num2);
+                        const winning_number = (earlyWins.includes(i)) ? shuffle([choice, loser_number[0]]) : loser_number;
+                        const outcome = winning_number.includes(choice) ? 'W' : 'L';
+                        data.winning_number = winning_number;
+                        data.choice = choice;
+                        data.outcome = outcome;
+                        data.special_sequence = false;
+                        updateLastFiveResults(winning_number, outcome);
+
+                        // Update points if the guess is correct
+                        if (outcome === 'W') {
+                            updatePoints(20);
+                        }
+                    }
+                };
+                initial_phase_n2.push(trial_n2);
+
+                const feedback_n2 = {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        const last_trial = jsPsych.data.get().last(1).values()[0];
+                        const feedback_image1 = 'img/feedback_' + last_trial.winning_number[0] + '.png';
+                        const feedback_image2 = 'img/feedback_' + last_trial.winning_number[1] + '.png';
+                        const outcome = last_trial.outcome;
+                        let win_image_html = '';
+                        if (outcome === 'W') {
+                            win_image_html = '<img src="img/win.png" class="win-image">';
+                        }
+                        return '<div style="display: flex; justify-content: center; margin-top: -200px;"><img src="' + feedback_image1 + '" style="margin-right: 10px;"><img src="' + feedback_image2 + '">' + win_image_html + '</div>';
+                    },
+                    choices: 'NO_KEYS',
+                    trial_duration: 1000
+                };
+                initial_phase_n2.push(feedback_n2);
+            }
+
+            // Special Sequence Phase for n1 and n2 conditions, placed from trial index 10 to 14
+            for (let i = 10; i < 15; i++) {
+                const n1_trial = {
+                    type: jsPsychCanvasButtonResponse,
+                    stimulus: drawStimulusN1,
+                    canvas_size: [700, 700],
+                    choices: images,
+                    button_html: function (choice) {
+                        return '<button class="jspsych-btn"><img src="' + choice + '" width="50px" height="68px"></button>';
+                    },
+                    on_finish: function (data) {
+                        const choice = images[data.response].split('_')[1].split('.')[0];
+                        let winning_number_found = false;
+                        let winning_number;
+                        while (winning_number_found == false) {
+                            new_num = getRandomInt(0, 9);
+                            winning_number_found = new_num != choice;
+                        }
+                        winning_number = new_num;
+                        const outcome = 'L';
+                        data.outcome = outcome;
+                        data.special_sequence = true;
+                        data.winning_number = winning_number;
+                        data.choice = choice;
+                        updateLastFiveResults(winning_number, outcome);
+
+                        // Update points if the guess is correct
+                        if (outcome === 'W') {
+                            updatePoints(20);
+                        }
+                    }
+                };
+                special_sequence_n1.push(n1_trial);
+
+                const feedback_n1 = {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        const last_trial = jsPsych.data.get().last(1).values()[0];
+                        const feedback_image = 'img/feedback_' + last_trial.winning_number + '.png';
+                        return '<img src="' + feedback_image + '" style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);">';
+                    },
+                    choices: 'NO_KEYS',
+                    trial_duration: 1000
+                };
+                special_sequence_n1.push(feedback_n1);
+
+                const n2_trial = {
+                    type: jsPsychCanvasButtonResponse,
+                    stimulus: drawStimulusN2,
+                    canvas_size: [700, 700],
+                    choices: images,
+                    button_html: function (choice) {
+                        return '<button class="jspsych-btn"><img src="' + choice + '" width="50px" height="68px"></button>';
+                    },
+                    on_finish: function (data) {
+                        const choice = images[data.response].split('_')[1].split('.')[0];
+                        let winning_number = winning_numbers_sequence_n2[i];
+                        // Insert the special sequence if within the range
+                        winning_number = [parseInt(choice), getRandomInt(0, 9)];
+                        if (winning_number[1] === winning_number[0]) {
+                            winning_number[1] = (winning_number[1] + 1) % 10;
+                        }
+                        shuffle(winning_number);
+                        const outcome = 'W';
+                        data.outcome = outcome;
+                        data.special_sequence = true;
+                        data.winning_number = winning_number;
+                        data.choice = choice;
+                        updateLastFiveResults(winning_number, outcome);
+
+                        // Update points if the guess is correct
+                        if (outcome === 'W') {
+                            updatePoints(20);
+                        }
+                    }
+                };
+                special_sequence_n2.push(n2_trial);
+
+                const feedback_n2 = {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        const last_trial = jsPsych.data.get().last(1).values()[0];
+                        const feedback_image1 = 'img/feedback_' + last_trial.winning_number[0] + '.png';
+                        const feedback_image2 = 'img/feedback_' + last_trial.winning_number[1] + '.png';
+                        const outcome = last_trial.outcome;
+                        let win_image_html = '';
+                        if (outcome === 'W') {
+                            win_image_html = '<img src="img/win.png" class="win-image">';
+                        }
+                        return '<div style="display: flex; justify-content: center; margin-top: -200px;"><img src="' + feedback_image1 + '" style="margin-right: 10px;"><img src="' + feedback_image2 + '">' + win_image_html + '</div>';
+                    },
+                    choices: 'NO_KEYS',
+                    trial_duration: 1000
+                };
+                special_sequence_n2.push(feedback_n2);
+                
+            }
+
+            // Monitored Phase: 45 Trials with Sliding Window Behavior
+            for (let i = 15; i < 60; i++) {
+                let trial_n1 = {
+                    type: jsPsychCanvasButtonResponse,
+                    stimulus: drawStimulusN1,
+                    canvas_size: [700, 700],
+                    choices: images,
+                    button_html: function (choice) {
+                        return '<button class="jspsych-btn"><img src="' + choice + '" width="50px" height="68px"></button>';
+                    },
+                    on_finish: function (data) {
+                        const choice = Number(images[data.response].split('_')[1].split('.')[0]);
+                        // const winning_number = condition === 'n1' ? winning_numbers_sequence_n1[i] : winning_numbers_sequence_n2[i];
+                        // let outcome;
+                        // if (condition == 'n1') {
+                        //     outcome = winning_number == choice ? 'W' : 'L';
+                        // } else {
+                        //     outcome = (winning_number.includes(choice)) ? 'W' : 'L';
+                        // }
+                        let winning_number;
+                        let outcome;
+                        if (isSpecial) {
+                            outcome = 'L';
+                            let winning_number_found = false;
+                            while (winning_number_found == false) {
+                                new_num = getRandomInt(0, 9);
+                                winning_number_found = new_num != choice;
+                            }
+                            winning_number = new_num;
+                            specialCount++;
+                        } else {
+                            winning_number = winning_numbers_sequence_n1[i];
+                            outcome = winning_number == choice ? 'W' : 'L';
+                        }
+                        data.winning_number = winning_number;
+                        data.choice = choice;
+                        data.outcome = outcome;
+                        data.special_sequence = isSpecial;
+                        updateLastFiveResults(winning_number, outcome);
+
+                        // Update points if the guess is correct
+                        if (outcome === 'W') {
+                            updatePoints(20);
+                        }
+
+                        if (i == specialStart && !special_sequence_inserted) {
+                            dataSoFar = jsPsych.data.get();
+                            const recentData = jsPsych.data.get().last(10).values();
+                            let lastChoice = recentData[recentData.length - 1].choice;
+                            special_sequence_inserted = true;
+                            isSpecial = true;
+                        } else if (i >= 20) {
+                            if (specialCount == 5) {
+                                isSpecial = false;
+                                specialCount++;
+                            }
+                        }
+                    }
+                };
+                monitored_phase_n1.push(trial_n1);
+
+                let trial_n2 = {
+                    type: jsPsychCanvasButtonResponse,
+                    stimulus: drawStimulusN2,
+                    canvas_size: [700, 700],
+                    choices: images,
+                    button_html: function (choice) {
+                        return '<button class="jspsych-btn"><img src="' + choice + '" width="50px" height="68px"></button>';
+                    },
+                    on_finish: function (data) {
+                        const choice = Number(images[data.response].split('_')[1].split('.')[0]);
+                        let winning_number;
+                        let outcome;
+                        if (isSpecial) {
+                            outcome = 'W';
+                            winning_number = winning_numbers_sequence_n2[i];
+                            // Insert the special sequence if within the range
+                            winning_number = [parseInt(choice), getRandomInt(0, 9)];
+                            if (winning_number[1] === winning_number[0]) {
+                                winning_number[1] = (winning_number[1] + 1) % 10;
+                            }
+                            shuffle(winning_number);
+                            specialCount++;
+                        } else {
+                            winning_number = winning_numbers_sequence_n2[i];
+                            outcome = (winning_number.includes(choice)) ? 'W' : 'L';
+                        }
+                        data.winning_number = winning_number;
+                        data.choice = choice;
+                        data.outcome = outcome;
+                        data.special_sequence = isSpecial;
+                        updateLastFiveResults(winning_number, outcome);
+
+                        // Update points if the guess is correct
+                        if (outcome === 'W') {
+                            updatePoints(20);
+                        }
+
+                        if (i == specialStart && !special_sequence_inserted) {
+                            special_sequence_inserted = true;
+                            isSpecial = true;
+                        } else if (i >= 20) {
+                            if (specialCount == 5) {
+                                specialCount++;
+                                isSpecial = false;
+                            }
+                        }
+                    }
+                };
+                monitored_phase_n2.push(trial_n2);
+
+                const feedback = {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        if (condition == 'n1') {
+                            const last_trial = jsPsych.data.get().last(1).values()[0];
+                            const feedback_image = 'img/feedback_' + last_trial.winning_number + '.png';
+                            const outcome = last_trial.outcome;
+                            let win_image_html = '';
+                            if (outcome === 'W') win_image_html = '<img src="img/win.png" class="win-image">';
+                            return '<div><img src="' + feedback_image + '" style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);">' + win_image_html + '</div>';
+                        } else {
+                            const last_trial = jsPsych.data.get().last(1).values()[0];
+                            const feedback_image1 = 'img/feedback_' + last_trial.winning_number[0] + '.png';
+                            const feedback_image2 = 'img/feedback_' + last_trial.winning_number[1] + '.png';
+                            const outcome = last_trial.outcome;
+                            let win_image_html = '';
+                            if (outcome === 'W') {
+                                win_image_html = '<img src="img/win.png" class="win-image">';
+                            }
+                            return '<div style="display: flex; justify-content: center; margin-top: -200px;"><img src="' + feedback_image1 + '" style="margin-right: 10px;"><img src="' + feedback_image2 + '">' + win_image_html + '</div>';
+                        }
+                    },
+                    choices: 'NO_KEYS',
+                    trial_duration: 1000
+                };
+                
+                monitored_phase_n1.push(feedback);
+                monitored_phase_n2.push(feedback);
+
+            }
+
+            function createMonitoredPhase2(trials, isN1) {
+                const monitored_phase = [];
+                let special_count = 0;
+                const sliding_window_size = 10;
+                isSpecial = false;
+
+                for (let i = 0; i < trials; i++) {
+                    const monitored_phase = [];
+                    let special_count = 0;
+                    const sliding_window_size = 10;
+
+                    for (let i = 0; i < trials; i++) {
+                        const trial = {
+                            type: jsPsychCanvasButtonResponse,
+                            stimulus: isN1 ? drawStimulusN1 : drawStimulusN2,
+                            canvas_size: [700, 700],
+                            choices: images,
+                            button_html: function (choice) {
+                                return '<button class="jspsych-btn"><img src="' + choice + '" width="50px" height="68px"></button>';
+                            },
+                            on_finish: function (data) {
+                                const choice = Number(images[data.response].split('_')[1].split('.')[0]);
+                                let winning_number, outcome;
+                                
+                                if (isSpecial) {
+                                    // Insert special sequence
+                                    winning_number = isN1 ? getRandomInt(0, 9) : [choice, getRandomInt(0, 9)];
+                                    if (isN1) {
+                                        let winning_number_found = false;
+                                        while (winning_number_found == false) {
+                                            new_num = getRandomInt(0, 9);
+                                            winning_number_found = new_num != choice;
+                                        }
+                                        winning_number = new_num;
+                                        outcome = 'L';
+                                    } else {
+                                        if (winning_number[1] === winning_number[0]) {
+                                            winning_number[1] = (winning_number[1] + 1) % 10;
+                                        }
+                                        shuffle(winning_number);
+                                        outcome = winning_number.includes(choice) ? 'W' : 'L';
+                                    }
+                                    special_count++;
+                                    
+                                } else {
+                                    // Normal trial
+                                    winning_number = isN1 ? getRandomInt(0, 9) : [getRandomInt(0, 9), getRandomInt(0, 9)];
+                                    if (isN1) {
+                                        outcome = winning_number === choice ? 'W' : 'L';
+                                    } else {
+                                        if (winning_number[1] === winning_number[0]) {
+                                            winning_number[1] = (winning_number[1] + 1) % 10;
+                                        }
+                                        shuffle(winning_number);
+                                        outcome = winning_number.includes(choice) ? 'W' : 'L';
+                                    }
+                                }
+
+                                data.winning_number = winning_number;
+                                data.choice = choice;
+                                data.outcome = outcome;
+                                data.special_sequence = isSpecial;
+
+                                // Selective insertion logic
+                                const recent_data = jsPsych.data.get().last(sliding_window_size).values();
+                                const same_choice_count = recent_data.filter(trial => trial.choice === choice).length;
+
+                                if (same_choice_count >= 3 && special_count < 1) {
+                                    isSpecial = true;
+                                } else if (i == trials - 11 && special_count < 1) {
+                                    isSpecial = true;
+                                }
+
+                                if (special_count == 5) {
+                                    special_count++;
+                                    isSpecial = false;
+                                }
+
+                                updateLastFiveResults(winning_number, outcome);
+                                if (outcome === 'W') updatePoints(20);
+                            }
+                        };
+
+                        monitored_phase.push(trial);
+
+                        const feedback = {
+                            type: jsPsychHtmlKeyboardResponse,
+                            stimulus: function () {
+                                const last_trial = jsPsych.data.get().last(1).values()[0];
+                                if (isN1) {
+                                    const feedback_image = 'img/feedback_' + last_trial.winning_number + '.png';
+                                    const outcome = last_trial.outcome;
+                                    let win_image_html = '';
+                                    if (outcome === 'W') win_image_html = '<img src="img/win.png" class="win-image">';
+                                    return `<div><img src="${feedback_image}" style="position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);">${win_image_html}</div>`;
+                                } else {
+                                    const feedback_image1 = 'img/feedback_' + last_trial.winning_number[0] + '.png';
+                                    const feedback_image2 = 'img/feedback_' + last_trial.winning_number[1] + '.png';
+                                    const outcome = last_trial.outcome;
+                                    let win_image_html = '';
+                                    if (outcome === 'W') win_image_html = '<img src="img/win.png" class="win-image">';
+                                    return `<div style="display: flex; justify-content: center; margin-top: -200px;"><img src="${feedback_image1}" style="margin-right: 10px;"><img src="${feedback_image2}">${win_image_html}</div>`;
+                                }
+                            },
+                            choices: 'NO_KEYS',
+                            trial_duration: 1000
+                        };
+
+                        monitored_phase.push(feedback);
+                    }
+
+                    return monitored_phase;
+                }
+            }
+
+                // Create monitored phase 2 timelines
+            const monitored_phase_2_n1 = createMonitoredPhase2(40, true);
+            const monitored_phase_2_n2 = createMonitoredPhase2(40, false);
+
+            // End of experiment
+            const end_message = {
+                type: jsPsychHtmlKeyboardResponse,
+                // stimulus: '<p><img src="img/thanks.png"></p>',
+                stimulus: null,
+                choices: "NO_KEYS",
+                trial_duration: 0,
+                on_finish: function () {
+                    endOfExperiment();
+                    
+                }
+            };
+
+            // Save data, go to next component
+            function endOfExperiment() {
+                $(window).unbind("beforeunload");
+
+                document.getElementById("nextPage").style.visibility = 'visible';
+
+                studySessionData.nCompleted++;
+                studySessionData.totalPoints = studySessionData.totalPoints + totalPoints;
+                taskIndex = studySessionData.taskIndex;
+                studySessionData.taskIndex = taskIndex.slice(1);
+
+                studySessionData.completedTasks["lotto"] = true;
+                studySessionData.cameFrom = "lotto";
+
+                dataOutput = jsPsych.data.get().csv();
+
+                // Uncomment below for JATOS deployment
+                jatos.studySessionData = studySessionData;
+
+                
+                let filename = "ID" + username + "_Lottery_" + studySessionData.lottoGroup + "_Stage3_Data.csv";
+
+                // Uncomment below for JATOS deployment
+                setTimeout(() => {
+                    jatos.uploadResultFile(dataOutput, filename)
+                    .then(() => jatos.startComponentByPos(11));
+                }, 3000);
+            }
+
+            function makeTimeline() {
+                if (condition == 'n1') {
+                    timeline = [
+                        instructions,
+                        ...initial_phase_n1,               // Phase 1: Initial (10 trials)
+                        ...special_sequence_n1,            // Phase 2: Special sequence 1 (5 trials)
+                        ...monitored_phase_n1,             // Phase 3: Monitored with random insertions (50 trials)
+                        ...monitored_phase_2_n1,           // Phase 4: Monitored 2 with specific insertion (35 trials)
+                        end_message
+                    ];
+                } else if (condition == 'n2') {
+                    timeline = [
+                        instructions,
+                        ...initial_phase_n2,
+                        ...special_sequence_n2,
+                        ...monitored_phase_n2,
+                        ...monitored_phase_2_n2,
+                        end_message
+                    ];
+                }
+            }
+        </script>
+    </body>
+</html>

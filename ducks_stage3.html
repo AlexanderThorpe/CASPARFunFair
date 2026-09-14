@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Duck Shooting Gallery</title>
+        <link href="styles/style.css" rel="stylesheet" />
+        <link href="styles/styleDuck.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karla:400,700">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald:300,400">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <div id="instructionBox" class="instruct-page" style="visibility: hidden">
+            <p class="customfont">
+                <span id="instructions">Welcome to the duck shooting gallery!<br>
+                    To fire at the ducks, press the keyboard key displayed on them repeatedly.<br>
+                    Knock down a duck, any duck, and win 5 points!<br>
+                    Some ducks take more shots to knock down than others...<br>
+                    Let's start with a couple of practice runs. Start shooting!</span>
+            </p>
+        </div>
+        <div id="choiceBox" class="choice-page" style="visibility: hidden">
+            <p id="choiceText" class="customfont">
+                TUTORIAL<br>
+                A second duck has appeared!<br>
+                You can keep shooting the duck you've been shooting at,<br>
+                or click the CHANGE button to change to the new duck.<br>
+                Just for this trial, let's stay with the first duck.
+            </p>
+            <div class="continue-div" id="continueChoice" style="height: 3em">  
+                <button class="choice-button customfont" id="choiceButton" style="width: auto" onclick= null>CONTINUE</button>
+            </div>
+        </div>
+        <div class="choice-div" id="leftChoice" style="left: 20%">  
+            <button class="choice-button customfont" id="leftButton" style='visibility: hidden' onclick= null></button>
+        </div>
+        <div class="choice-div" id="rightChoice" style="left: 60%">  
+            <button class="choice-button customfont" id="rightButton" style='visibility: hidden' onclick= null></button>
+        </div>
+        <div class="stageDiv">
+            <div class="duckDiv" id="leftDuck" style="left: 15%" style="visibility: hidden">
+                <img class="duckImg" src="img/duckMJ.png">
+                <img class="duckKey" src="img/F.png">
+                <img class="duckMask" src="img/duckMaskMJ.png">
+            </div>
+            <div class="duckDiv" id="rightDuck" style="left: 65%" style="visibility: hidden">
+                <img class="duckImg" src="img/duckMJ.png">
+                <img class="duckKey" src="img/J.png">
+                <img class="duckMask" src="img/duckMaskMJ.png">
+            </div>
+        </div>
+        <div id="trialBox" class="trialBox" style="visibility: hidden">
+            <div id="gallery" class="gallery">
+            </div>
+        </div>
+        <div id="scoreBox" class="scoreBox customfont" style="visibility: hidden">
+            <p>
+                <span id="score">POINTS: 0</span>
+            </p>
+        </div>
+        <div id="nextPage" class="redirect customfont" style="visibility: hidden">
+            <p>
+                Well done, you've finished this game!<br>
+                Now let's play another game.
+            </p>
+        </div>
+
+        <div class="loading customfont" style="background-image: url('img/loading_page1.jpg')">
+        </div>
+
+        <div class="prizeDiv" id="prizeDiv" style="background-image: url('img/prizeHead.png'); visibility: hidden">
+            <div class="prizeHead">
+            </div>
+            <div class="starDiv" style="background-image: url('img/starBack.png'); left: 29%">
+                <img class="prizeImg" id="starImg">
+            </div>
+            <!-- <div class="teddyDiv" style="left: 27%">
+                <img class="prizeImg" id="teddyImg">
+                <img class="prizeImg" id="nameTag">
+            </div> -->
+        </div>
+
+
+        <script src="/assets/javascripts/jatos.js"></script>
+        <script>
+            // What to do when jatos.js is finished initializing
+            //UNCOMMENT FOR JATOS DEPLOYMENT
+            jatos.onLoad(function() {
+                studySessionData = jatos.studySessionData;
+                username = studySessionData["username"];
+            });
+
+            $(window).bind("beforeunload", function(){
+                return confirm(); 
+            });
+
+            document.getElementById("leftDuck").style.visibility = "hidden";
+            document.getElementById("rightDuck").style.visibility = "hidden";
+
+            var studySessionData;
+            var username;
+            const nHPTrials = 28;
+            var trial = -1;
+            var hpList = [];
+            var smallHpList = [];
+            const hpValues = [1, 4, 7, 10, 13, 16, 19];
+            var pracTarget = [0, 1];
+            const pracHP = [10, 10];
+            var targetDuck;
+            var otherDuck;
+            var hits = 0;
+            var trialHP;
+            var duckHP;
+            var targetList = [];
+            var smallTargetList = [];
+            var ducks = ["leftDuck", "rightDuck"];
+            var trialPos;
+            var thisTarget;
+            var otherVal;
+            var trialChoice = 'none';
+            var score = 0;
+            const winnings = 5;
+            const bonus = 10;
+            const nTrials = nHPTrials + (bonus + 1);
+            var blockData = new Array();
+            var dataOutput = [];
+            var output_txt;
+            var trialStart;
+            var trialEnd;
+            var trialShots;
+            var bdTrial1;
+            var bdTrial2;
+            var ducksImg = ['img/loading_page1.jpg', 'img/prizeHead.png', 'img/duckBackgroundMJ.jpg', 'img/duckBackgroundMJ_multiplenum.jpg', 'img/duckMaskMJ.png', 'img/duckMJ.png', 'img/duckBlueMJ.png', 'img/F.png', 'img/J.png',
+                'img/starBack.png', 'img/star1.png', 'img/star2.png', 'img/star3.png', 'img/star4.png', 'img/star5.png', 'img/star6.png', 'img/star7.png', 'img/star8.png'];
+            var inTrial = false;
+
+            preLoader(ducksImg);
+
+            hpList = makeBigList(hpList, hpValues, nHPTrials);
+            shuffle(hpList);
+
+            smallHpList = makeBigList(smallHpList, hpValues, bonus - 1);
+            shuffle(smallHpList);
+
+            targetList = makeBigList(targetList, [0, 1], nHPTrials);
+            shuffle(targetList);
+
+            smallTargetList = makeBigList(smallTargetList, [0, 1], bonus - 1);
+            shuffle(smallTargetList);
+
+            // ten_one = hpList.indexOf(10);
+            // ten_two = hpList.indexOf(10, ten_one + 1);
+            // hpList.splice(ten_two, 1);
+            // hpList.splice(ten_one, 1);
+
+            bdTrial1 = getRandomInt(3, 5);
+            hpList.splice(bdTrial1 - 1, 0, 10)
+            targetList.splice(bdTrial1 - 1, 0, getRandomInt(0, 1))
+            for (i = 0; i < bonus - 1; i++) {
+                hpList.splice(bdTrial1 + 1, 0, smallHpList[i])
+                targetList.splice(bdTrial1 + 1, 0, smallTargetList[i])
+            }
+
+            bdTrial2 = getRandomInt(11 + bonus, nTrials - bonus);
+            hpList.splice(bdTrial2 - 1, 0, 10)
+            targetList.splice(bdTrial2 - 1, 0, getRandomInt(0, 1))
+
+            // UNCOMMENT FOR JATOS DEPLOYMENT
+            waitForJATOS();
+
+            // EXPERIMENTAL FLOW FUNCTIONS
+
+            // Check whether JATOS has loaded before initialising
+            function waitForJATOS() {
+                let name = username;
+                if (name !== undefined) {
+                    init();
+                }
+                else {
+                    setTimeout(waitForJATOS, 300);
+                }
+            }
+
+            document.addEventListener('keydown', function responseKeys(event) {
+                if (event.repeat) {return};
+                if (!inTrial) {return};
+                if (trial == 0 & trialChoice == 'stay') {
+                    return;
+                }
+                if (event.keyCode == 70 & trialPos == 'left') {
+                    duckClicked(trialPos);
+                } else if (event.keyCode == 74 & trialPos == 'right') {
+                    duckClicked(trialPos);
+                }});
+
+            function init() {
+                $(".loading").fadeOut("slow");
+                if (studySessionData.triviaMiss >= 3) {
+                    document.body.style.backgroundImage = 'url(img/duckBackgroundMJ_multiplenum.jpg)'
+                }
+                document.getElementById("prizeDiv").style.visibility = 'visible';
+                document.getElementById("starImg").src = "img/star" + studySessionData.nStars + ".png";
+                populateGallery(nTrials);
+                trialStarter(trial);
+            }
+
+
+            // Initialise each trial
+            function trialStarter(trial) {
+                hits = 0;
+                trialChoice = 'none';
+                if (trial == bdTrial1) {
+                    duckHP = 5 * bonus;
+
+                } else {
+                    duckHP = 999;
+                }
+                if (trial < 1) {
+                    thisTarget = pracTarget[trial + 1];
+                    trialHP = pracHP[trial + 1];
+                } else {
+                    thisTarget = targetList[trial - 1];
+                    trialHP = hpList[trial - 1];
+                }
+                switch(thisTarget) {
+                    case 0:
+                        trialPos = "left";
+                        otherVal = 1;
+                        break;
+                    case 1:
+                        trialPos = "right";
+                        otherVal = 0;
+                        break;
+                    default:
+                        console.log('thisTarget switch broke') // We shouldn't be here
+                }
+                if (trial == -1) {
+                    document.getElementById("instructionBox").style.visibility = 'visible';
+                } else if (trial == 0) {
+                    document.getElementById("instructions").innerText = "Let's try another practice trial.\nStart shooting!"
+                    document.getElementById("instructionBox").style.visibility = 'visible';
+                    document.getElementById("choiceText").innerText = "A second duck has appeared!\nYou can keep shooting the duck you've been shooting at,\nor click the CHANGE button to change to the new duck.\nFor this trial, let's change to the new duck."
+                } else if (trial == 1) {
+                    score = 0;
+                    document.getElementById("trialBox").style.visibility = 'visible';
+                    document.getElementById("score").innerText = "POINTS: " + score;
+                    document.getElementById("instructions").innerText = "Now you're ready for the real thing.\nYou'll be able to freely choose which duck to shoot at from now on.\nYou need " + winnings * nTrials + " points to finish the game.\nStart shooting!"
+                }
+                if (trial > 1) {
+                    document.getElementById("instructionBox").style.visibility = 'hidden';
+                }
+                targetDuck = ducks[thisTarget];
+                otherDuck = ducks[otherVal];
+                document.getElementById(targetDuck).style.visibility = 'visible';
+                document.getElementById(otherDuck).style.visibility = 'hidden';
+                document.getElementById("scoreBox").style.visibility = 'visible';
+                if (trial == 1) {
+                    // toggleDuckClicks('off');
+                    // setTimeout(() => {toggleDuckClicks('on');}, 500);
+                    setTimeout(() => {inTrial = true;}, 500);
+                } else if (trial == bdTrial1) {
+                    document.getElementById("choiceText").innerText = "Wow, a blue duck has appeared!\nThis rare duck is worth " + winnings * bonus + " points.\nThat's as many as you'd normally win in " + bonus + " trials!\nIt's tougher than the other ducks though, so it will take more shots to knock down."
+                    document.getElementById("choiceBox").style.visibility = 'visible';
+                    document.getElementById("choiceButton").onclick = function() {continueClicked(trial)};
+                } else {
+                    inTrial = true;
+                }
+            }
+
+            // Finish each trial
+            function trialEnder() {
+                inTrial = false;
+                otherDuckDiv = document.getElementById(otherDuck)
+                otherDuckDiv.style.visibility = 'hidden';
+                otherMask = otherDuckDiv.getElementsByClassName('duckMask')[0];
+                otherMask.style.visibility = 'hidden';
+                otherMask.style.opacity = '100%';
+                document.getElementById(targetDuck).style.visibility = 'hidden';
+                document.getElementById("leftButton").style.visibility = 'hidden';
+                document.getElementById("rightButton").style.visibility = 'hidden';
+                if (trial > 0) {
+                    pushData();
+                    updateGallery(trial);
+                }
+                let trialWinnings;
+                if (trial == bdTrial1 & trialChoice == 'stay') {
+                    trialWinnings = winnings * bonus;
+                } else {
+                    trialWinnings = winnings;
+                }
+                if (trial == bdTrial2 & trialChoice == 'stay') {
+                    document.getElementById("instructions").innerText = "Hey hey hey, no cheating!\nJust for that, I'm taking all your points away.";
+                    document.getElementById("instructionBox").style.visibility = 'visible';
+                    score = 0;
+                    document.getElementById("score").innerText = "POINTS: " + score;
+                } else {
+                    document.getElementById("instructions").innerText = "Well done! You've earned " + trialWinnings + " points!";
+                    document.getElementById("instructionBox").style.visibility = 'visible';
+                    score = score + trialWinnings;
+                    document.getElementById("score").innerText = "POINTS: " + score;
+                }
+                
+                if (trial == nTrials) {
+                    dataSave();
+                    setTimeout(function(){ 
+                        endOfExperiment();
+                    }, 3000);
+                } else {
+                    if (trial == bdTrial1 & trialChoice == 'stay') {
+                        oldTrial = trial;
+                        trial = trial + 10;
+                        for (let i = oldTrial + 1; i < trial; i++) {
+                            updateGallery(i);
+                        }
+                    } else {
+                        trial++;
+                    }
+
+                    if (trial > 0 & trial <= nTrials) {
+                        nextTarget = targetList[trial - 1];
+                        switch(nextTarget) {
+                            case 0:
+                                nextPos = "left";
+                                nextOtherVal = 1;
+                                break;
+                            case 1:
+                                nextPos = "right";
+                                nextOtherVal = 0;
+                                break;
+                            default:
+                                console.log('nextTarget switch broke') // We shouldn't be here
+                        }
+                        targetDuck = ducks[nextTarget];
+                        otherDuck = ducks[nextOtherVal];
+                        targetDuckDiv = document.getElementById(targetDuck);
+                        targetDuckImg = targetDuckDiv.getElementsByClassName('duckImg')[0];
+                        otherDuckDiv = document.getElementById(otherDuck);
+                        otherDuckImg = otherDuckDiv.getElementsByClassName('duckImg')[0];
+                        if (trial == bdTrial1 | trial == bdTrial2) {
+                            targetDuckImg.src = 'img/duckBlueMJ.png';
+                        } else {
+                            targetDuckImg.src = 'img/duckMJ.png';
+                            otherDuckImg.src = 'img/duckMJ.png';
+                        }
+                    }
+                    
+                    setTimeout(function() {
+                        trialStarter(trial);
+                    }, 3000);
+                }
+            }
+
+            // End the experiment
+            function endOfExperiment() {
+                $(window).unbind("beforeunload");
+                studySessionData.nCompleted++;
+                studySessionData.totalPoints = studySessionData.totalPoints + score;
+                taskIndex = studySessionData.taskIndex;
+                studySessionData.taskIndex = taskIndex.slice(1);
+
+                studySessionData.completedTasks["ducks"] = true;
+                studySessionData.cameFrom = "ducks";
+                
+                // Uncomment below for JATOS deployment
+                jatos.studySessionData = studySessionData;
+
+                output_txt = "Username" + "," + "Task" + "," + "Trial" + "," + "trialType" + "," + "TrialHP" + "," + "Choice" + "," + "nShots" + "," + "RT\n";
+                
+                for (var i = 0; i < dataOutput.length; i++) {
+                    output_txt += dataOutput[i].toString() + "\n";
+                }
+                
+                var expVarTxt = output_txt;
+                var expSendVariables = expVarTxt;
+
+                document.getElementById("instructionBox").style.visibility = 'hidden';
+                document.getElementById("leftDuck").style.visibility = 'hidden';
+                document.getElementById("rightDuck").style.visibility = 'hidden';
+                document.getElementById("scoreBox").style.visibility = 'hidden';
+                document.getElementById("trialBox").style.visibility = 'hidden';
+                document.getElementById("nextPage").style.visibility = 'visible';
+                
+                // Uncomment below for JATOS deployment
+                setTimeout(() => {
+                    jatos.uploadResultFile(expSendVariables, "ID" + username + "_Duck_Stage3_Data.csv")
+                    .then(() => jatos.startComponentByPos(11));
+                }, 3000);
+            }
+
+            // DATA FUNCTIONS
+
+            // Shuffle elements in an array
+            function shuffle(array) {
+                let currentIndex = array.length, temporaryValue, randomIndex;
+
+                while (0 !== currentIndex) {
+
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex -= 1;
+
+                    temporaryValue = array[currentIndex];
+                    array[currentIndex] = array[randomIndex];
+                    array[randomIndex] = temporaryValue;
+                }
+                return array;
+            }
+
+            // Helper function to generate random integer between min and max
+            function getRandomInt(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            // Find the "squarest" factor of a number
+            function findSquareFactors(n) {
+                let factor1 = [];
+                let factor2 = [];
+                let diffs = [];
+                for(let i = 1; i <= n; i++) {
+                    if(n % i == 0) {
+                        factor1.push(i);
+                        factor2.push(n / i);
+                        diffs.push(Math.abs(i - (n / i)));
+                    }
+                }
+                minDiff = Math.min(...diffs);
+                let isBest = (element) => element == minDiff;
+                bestPair = diffs.findIndex(isBest);
+                factors = [factor1[bestPair + 1], factor2[bestPair + 1]];
+                return factors;
+            }
+
+            // Populate list of HPs for Duck 1
+            function makeBigList(list, values, listLen) {
+                for (val = 0; val < values.length; val++) {
+                    list = fillArray(list, values[val], listLen / values.length);
+                }
+                return list.flat();
+            }
+
+            // Fill an array with repeated numbers
+            function fillArray(bigArr, value, len) {
+                let arr = [];
+                for (i = 0; i < len; i++) {
+                    arr.push(value);
+                }
+                bigArr.push(arr);
+                return bigArr;
+            }
+
+            // Push data per trial
+            function pushData() {
+                let thisTask = studySessionData.nCompleted + 1
+                let rt;
+                if (trialChoice == 'change')  {
+                    rt = trialEnd - trialStart;
+                } else {
+                    rt = NaN;
+                }
+                let trialType;
+                if (trial == bdTrial1 | trial == bdTrial2) {
+                    trialType = 'trigger';
+                } else {
+                    trialType = 'non-trigger';
+                }
+                trialStart = [];
+                trialEnd = [];
+                blockData.push([username, thisTask, trial, trialType, trialHP, trialChoice, trialShots, rt]);
+            }
+
+            // Save data for output as CSV
+            function dataSave() {
+                usernameVec = [];
+                taskVec = [];
+                trialVec = [];
+                trialTypeVec = [];
+                HPVec = [];
+                choiceVec = [];
+                shotsVec = [];
+                rtVec = [];
+
+                for (var i = 0; i < blockData.length; i++) {
+                    usernameVec.push(blockData[i][0]);
+                    taskVec.push(blockData[i][1]);
+                    trialVec.push(blockData[i][2]);
+                    trialTypeVec.push(blockData[i][3]);
+                    HPVec.push(blockData[i][4]);
+                    choiceVec.push(blockData[i][5]);
+                    shotsVec.push(blockData[i][6]);
+                    rtVec.push(blockData[i][7]);
+                    
+                    dataOutput.push(usernameVec[i] + "," + taskVec[i] + "," + trialVec[i] + "," + trialTypeVec[i] + "," + HPVec[i] + "," +  choiceVec[i] + "," + shotsVec[i] + "," + rtVec[i]);
+                }
+            }
+
+            // STIMULUS FUNCTIONS
+
+            // Set up teddy image
+            function teddyPicker(vars) {
+                let source;
+                if (vars.acc2) {
+                    source = "img/teddy_everything.png";
+                    return source;
+                }
+                if (vars.acc1) {
+                    source = "img/teddy_lollipop.png";
+                    return source;
+                }
+                source = "img/teddy_name.png";
+                return source;
+            }
+
+            // Populate the trial gallery
+            function populateGallery(n) {
+                let factors;
+                let nTest = n;
+                let factorsFound = false;
+                while (factorsFound == false) {
+                    factors = findSquareFactors(nTest);
+                    if (Math.abs(factors[0] - factors[1]) <= 3) {
+                        factorsFound = true;
+                    } else {
+                        nTest++;
+                    }
+                } 
+                gal = document.getElementById('gallery');
+                gal.style.gridTemplateColumns = "repeat(" + factors[0] + ", " + factors[0] * 1.4 + "%)";
+                gal.style.gridTemplateRows = "repeat(" + factors[1] + ", " + factors[1] * 2.4 + "%)";
+                let gridWidth = (100 - (factors[0] * 1.5 * factors[0])) / (factors[0] - 1);
+                let gridHeight = (100 - (factors[1] * 2.7 * factors[1])) / (factors[1] - 1);
+                gal.style.gridGap = gridHeight + "% " + gridWidth + "%";
+                for (let i = 0; i < n; i++) {
+                    let littleDuck = document.createElement('img');
+                    littleDuck.className = 'gallery-img';
+                    littleDuck.src = 'img/littleDuck.png';
+                    gal.appendChild(littleDuck);
+                }   
+            }
+
+            // Change a duck in the trial gallery
+            function updateGallery(trial) {
+                littleDucks = document.getElementsByClassName('gallery-img');
+                littleDucks[trial - 1].src = 'img/littleDuckHit.png';
+            }
+
+            // Toggle whether ducks can be interacted with while onscreen
+            function toggleDuckClicks(change) {
+                duckImgs = document.getElementsByClassName('duckImg');
+                switch (change) {
+                    case 'on':
+                        duckImgs[0].onclick = function() {duckClicked('left')};
+                        duckImgs[1].onclick = function() {duckClicked('right')};
+                        break;
+                    case 'off':
+                    duckImgs[0].onclick = null;
+                    duckImgs[1].onclick = null;
+                }
+            }
+
+            // Handle decision mid-trial
+            function choiceMaker() {
+                trialChoice = 'stay';
+                trialStart = Date.now();
+                trialShots = 0;
+                if (trial != bdTrial1 & trial != bdTrial2) {
+                    duckHP = 20;
+                }
+                if (trial < 1) {
+                    inTrial = false;
+                    document.getElementById("choiceBox").style.visibility = 'visible';
+                    document.getElementById("choiceButton").onclick = function() {continueClicked(trial)};
+                }
+                document.getElementById(targetDuck).style.visibility = 'visible';
+                document.getElementById(otherDuck).style.visibility = 'visible';
+                let otherDuckDiv = document.getElementById(otherDuck);
+                let otherMask = otherDuckDiv.getElementsByClassName('duckMask')[0];
+                otherMask.style.visibility = 'visible';
+                otherMask.style.opacity = '50%';
+                let stayText = "STAY";
+                let changeText = "CHANGE";
+                let leftVal;
+                let rightVal;
+                let disabledButton;
+                let enabledButton;
+                if (targetDuck == 'leftDuck') {
+                    document.getElementById("leftButton").innerText = stayText;
+                    document.getElementById("rightButton").innerText = changeText;
+                    document.getElementById("rightButton").style.visibility = 'visible';
+                    leftVal = 'stay';
+                    rightVal = 'change';
+                    if (trial == -1) {
+                        disabledButton = "rightButton";
+                        enabledButton = "leftButton";
+                    } else if (trial == 0) {
+                        disabledButton = "leftButton";
+                        enabledButton = "rightButton";
+                    }
+                } else if (targetDuck == 'rightDuck') {
+                    document.getElementById("leftButton").innerText = changeText;
+                    document.getElementById("leftButton").style.visibility = 'visible';
+                    document.getElementById("rightButton").innerText = stayText;
+                    leftVal = 'change';
+                    rightVal = 'stay';
+                    if (trial == -1) {
+                        disabledButton = "leftButton";
+                        enabledButton = "rightButton";
+                    } else if (trial == 0) {
+                        disabledButton = "rightButton";
+                        enabledButton = "leftButton";
+                    }
+                }
+                // toggleDuckClicks('off');
+                if (trial < 1) {
+                    document.getElementById(disabledButton).disabled = true;
+                    document.getElementById(enabledButton).disabled = false;
+                } else {
+                    document.getElementById("leftButton").disabled = false;
+                    document.getElementById("rightButton").disabled = false;
+                }
+                document.getElementById("leftButton").onclick = function() {buttonClicked(leftVal)};
+                document.getElementById("rightButton").onclick = function() {buttonClicked(rightVal)};
+            }
+
+            function buttonClicked(choice) {
+                trialEnd = Date.now();
+                // toggleDuckClicks('on');
+                switch (choice) {
+                    case 'stay':
+                        document.getElementById(otherDuck).style.visibility = 'hidden';
+                        duckHP = 20;
+                        break;
+                    case 'change':
+                        document.getElementById(targetDuck).style.visibility = 'hidden';
+                        duckHP = hits + 10;
+                        otherDuckDiv = document.getElementById(otherDuck);
+                        otherMask = otherDuckDiv.getElementsByClassName('duckMask')[0];
+                        otherMask.style.visibility = 'hidden';
+                        otherMask.style.opacity = '100%';
+                        if (trialPos == "left") {
+                            trialPos = "right";
+                        } else if (trialPos == "right") {
+                            trialPos = "left";
+                        }
+                        break;
+                    default:
+                    console.log('choice switch broke') // We shouldn't be here
+                }
+                document.getElementById("leftButton").style.visibility = 'hidden';
+                document.getElementById("rightButton").style.visibility = 'hidden';
+                document.getElementById("leftButton").onclick = null;
+                    document.getElementById("rightButton").onclick = null;
+                trialChoice = choice;
+            }
+
+            function continueClicked (trialN) {
+                inTrial = true;
+                document.getElementById("choiceBox").style.visibility = 'hidden';
+                document.getElementById("choiceButton").onclick = null;
+            }
+
+            // Handle each duck click
+            function duckClicked(pos) {
+                maskHandler(pos);
+                if (trial == bdTrial2 & trialChoice != 'stay') {
+                    hits++;
+                } else if (trial != bdTrial2) {
+                    hits++;
+                }
+                if (trialChoice == 'stay') {
+                    trialShots++;
+                }
+                if (hits >= trialHP & trialChoice == 'none') {
+                    choiceMaker();
+                } else if (hits >= duckHP) {
+                    trialEnder();
+                } else if (hits > 0 & hits < 10) {
+                    document.getElementById("instructionBox").style.visibility = 'hidden';
+                }
+            }
+
+            // Display mask upon duck click
+            function maskHandler(pos) {
+                divName = pos + "Duck";
+                thisDiv = document.getElementById(divName);
+                thisMask = thisDiv.getElementsByClassName("duckMask")[0];
+                thisMask.style.visibility = 'visible';
+                thisMask.style.opacity = '100%';
+                setTimeout(function() {
+                    thisMask.style.visibility = 'hidden';
+                }, 50);
+            }
+
+            // Preload images
+            function preLoader(imgList) {
+                for (i = 0; i < imgList.length; i++) {
+                    let img = new Image();
+                    img.src = imgList[i];
+                }
+            }
+        </script>
+    </body>
+</html>

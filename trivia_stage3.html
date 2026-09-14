@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Trivia Tent</title>
+        <link href="styles/style.css" rel="stylesheet" />
+        <link href="styles/styleTrivia.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karla:400,700">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald:300,400">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <div id="instructionBox" class="instruct-page" style="visibility: hidden">
+            <p class="customfont">
+                <span id="instructions">Let's play trivia! Get the answer right and win a bonus star!</span>
+            </p>
+        </div>
+        <div class="boardDiv customfont" id="boardText" style="visibility: hidden">
+            <p id="questionTitle" class="bigText">
+                QUESTION:
+            </p>
+            <p style="text-align: center">
+                <span id="questionText" class="qText"> </span>
+            </p>
+        </div>
+        <div class="answersDiv customfont">
+            <div class="answerBoard" id="answer1" style="left: 0%; visibility: hidden">
+                <img class="answerImg" src="img/light_button.png" onclick=null>
+                <div class="clickDiv" onclick="buttonClicked(1)" style="visibility: hidden"></div>
+                <div class="ans" id="ans1" style="visibility: hidden; pointer-events: none"></div>
+            </div>
+            <div class="answerBoard" id="answer2" style="left: 25.5%; visibility: hidden">
+                <img class="answerImg" src="img/light_button.png" onclick=null>
+                <div class="clickDiv" onclick="buttonClicked(2)" style="visibility: hidden"></div>
+                <div class="ans" id="ans2" style="visibility: hidden; pointer-events: none"></div>
+            </div>
+            <div class="answerBoard" id="answer3" style="right: 25.5%; visibility: hidden">
+                <img class="answerImg" src="img/light_button.png" onclick=null>
+                <div class="clickDiv" onclick="buttonClicked(3)" style="visibility: hidden"></div>
+                <div class="ans" id="ans3" style="visibility: hidden; pointer-events: none"></div>
+            </div>
+            <div class="answerBoard" id="answer4" style="right: 0%; visibility: hidden">
+                <img class="answerImg" src="img/light_button.png" onclick=null>
+                <div class="clickDiv" onclick="buttonClicked(4)" style="visibility: hidden"></div>
+                <div class="ans" id="ans4" style="visibility: hidden; pointer-events: none"></div>
+            </div>
+        </div>
+
+        <div class="bigStarDiv" id="bigStar" style="visibility: hidden">
+            <img class="bigStarImg" src="img/starBack.png">
+            <img class="bigStarImg" id="oldStars">
+            <img class="bigStarImg new" id="newStars" style="display: none">
+        </div>
+
+        <div id="nextPage" class="redirect customfont" style="visibility: hidden; pointer-events: none">
+            <p id="nextPageMessage">
+            </p>
+        </div>
+
+        <div class="loading customfont" style="background-image: url('img/loading_page1.jpg')">
+        </div>
+
+        <!-- <div class="prizeDiv">
+            <div class="prizeHead" style="background-image: url('img/prizeHead.png')">
+            </div>
+            <div class="starDiv" style="background-image: url('img/starBack.png')">
+                <img class="prizeImg" id="starImg">
+            </div>
+            <div class="teddyDiv">
+                <img class="prizeImg" id="teddyImg">
+                <img class="prizeImg" id="nameTag">
+            </div>
+        </div> -->
+
+
+        <script src="/assets/javascripts/jatos.js"></script>
+        <script>
+            // What to do when jatos.js is finished initializing
+            //UNCOMMENT FOR JATOS DEPLOYMENT
+            jatos.onLoad(function() {
+                studySessionData = jatos.studySessionData;
+                username = studySessionData["username"];
+            });
+
+            $(window).bind("beforeunload", function(){
+                return confirm(); 
+            });
+
+            var studySessionData;
+            var username;
+            var output_txt;
+            var trialChoice;
+            var acc;
+            var nCompleted;
+            var nStars;
+            var cameFrom;
+            var currentTrivia;
+            var currentOpts;
+            var trialStart;
+            var trialEnd;
+            var slotsImg = ['img/loading_page1.jpg', 'img/prizeHead.png', 'img/starBack.png', 'img/star1.png', 'img/star2.png', 'img/star3.png', 'img/star4.png', 'img/star5.png', 'img/star6.png',
+            'img/star7.png', 'img/star8.png', 'img/prizeHead.png', 'img/light_button.png', 'img/trivia_board.jpg'];
+
+            preLoader(slotsImg);
+
+
+            // var triviaAssets = {'slots': {'Q': 'How many days are there in the Mayan calendar Tzolkin?', 'Opts': ['320','260','129','2012'], 'A': '260'},
+            //     'ducks': {'Q': "When was Chanel’s most famous perfume of all time released?", 'Opts': ['May 5','June 6','December 12','January 1'], 'A': 'May 5'},
+            //     'cards': {'Q': 'What number serves as a title of a song by Queen on their A Night at the Opera album?', 'Opts': ['42','39','180','3'], 'A': '39'},
+            //     'lotto_gf': {'Q': 'A pentagon has five sides; a hexagon six. How many sides does a chiliagon have?', 'Opts': ['2500','1000','1069','420'], 'A': '1000'},
+            //     'lotto_de': {'Q': 'How many cards are there in a typical Tarot deck?', 'Opts': ['52','78','36','144'], 'A': '78'},
+            //     'bees': {'Q': 'What number is often symbolised within the international labour movement?', 'Opts': ['636','247','365','888'], 'A': '888'},
+            //     'wason': {'Q': "What number plate can be seen on Donald Duck’s car in Disney cartoons?", 'Opts': ['454','313','292','010'], 'A': '313'},
+            //     'cases': {'Q': 'What is the country calling code for Cambodia?', 'Opts': ['855','945','133','02'], 'A': '855'}};
+
+            var triviaAssets = {'slots': {'Q': "Including the 8 planets and 9 dwarf planets, how many known moons are there in our solar system?", 'Opts': ['380','296','129','2012'], 'A': '296'},
+                'ducks': {'Q': 'How many elements in the periodic table begin with the letter Z?', 'Opts': ['15','10','13','2'],'A': '2'},
+                'cards': {'Q': 'What is the only number retired by all Major League Baseball teams?', 'Opts': ['42', '9', '888', '98'], 'A': '42'},
+                'lotto': {'Q': 'What year was The Book of Healing by Avicenna published?', 'Opts': ['1027', '740', '350', '1390'], 'A': '1027'},
+                "marbles": {"Q": "How many peaks are there in the Adirondack mountain range?","Opts": ["62", "71", "46", "110"], "A": "46"},
+                "words": {"Q": "Under Jamaica's telephone numbering plan, which area code is designated for the island?","Opts": ["636", "247", "173", "880"],"A": "173"},
+                'wason': {'Q': 'Which year did Haelhae become the king of the Korean kingdom of Silla?', 'Opts': ['454', '310', '607', '105'], 'A': '310'},
+                'cases': {'Q': 'Which number is considered an unlucky number in Japan, because its digits read sequentially are the literal translation of yakuza?', 'Opts': ['893','490','1730','210'], 'A': '893'}
+                }
+
+            // UNCOMMENT FOR JATOS DEPLOYMENT
+            waitForJATOS();
+
+            // EXPERIMENTAL FLOW FUNCTIONS
+
+            // Check whether JATOS has loaded before initialising
+            function waitForJATOS() {
+                let name = username;
+                if (name !== undefined) {
+                    init();
+                }
+                else {
+                    setTimeout(waitForJATOS, 300);
+                }
+            }
+
+            // Initialise the experiment
+            function init() {
+                $(".loading").fadeOut("slow");
+                boards = document.getElementsByClassName("answerBoard");
+                for (i = 0; i < boards.length; i++) {
+                    boards[i].style.visibility = "visible";
+                }
+                nCompleted = studySessionData.nCompleted;
+                nStars = studySessionData.nStars;
+                cameFrom = studySessionData.cameFrom;
+                document.getElementById("instructionBox").style.visibility = 'visible';
+                currentTrivia = triviaAssets[cameFrom];
+                currentOpts = currentTrivia.Opts;
+                shuffle(currentOpts);
+                setOpts(currentOpts);
+                setTimeout(() => {showQuestion(currentTrivia['Q']);}, 3000);
+            }
+
+            // Show the question
+            function showQuestion(question) {
+                document.getElementById("questionText").innerText = question;
+                document.getElementById("boardText").style.visibility = 'visible';
+                setTimeout(() => {unlockAnswers(currentOpts);}, 3000);
+            }
+
+            // Add answers and clickable elements
+            function unlockAnswers(currentOpts) {
+                answers = document.getElementsByClassName("clickDiv");
+                ansText = document.getElementsByClassName("ans");
+                for (i = 0; i < answers.length; i++) {
+                    thisAns = i + 1;
+                    answers[i].style.visibility = 'visible';
+                    ansText[i].innerText = currentOpts[i];
+                    ansText[i].style.visibility = 'visible';
+                }
+                trialStart = Date.now();
+            }
+
+            // Remove answers and clickable elements
+            function lockAnswers() {
+                answers = document.getElementsByClassName("clickDiv");
+                ansText = document.getElementsByClassName("ans");
+                for (i = 0; i < answers.length; i++) {
+                    answers[i].style.visibility = 'hidden';
+                    ansText[i].style.visibility = 'hidden';
+                }
+            }
+
+            // End the experiment
+            function endOfExperiment() {
+                $(window).unbind("beforeunload");
+                document.getElementById("boardText").style.visibility = 'hidden';
+
+                let rt = trialEnd - trialStart;
+
+                answerData = studySessionData.username + "\tTrivia\t" + nCompleted + "\t" + trialChoice + "\t" + acc + "\t" + rt + "\n";
+                
+                redirMessage = "Now, let's go back outside."
+
+                let triviaSum = studySessionData.triviaIndex.reduce((partialSum, a) => partialSum + a, 0);
+                if (triviaSum < studySessionData.nCompleted) {
+                    if (studySessionData.nCompleted == 1) {
+                        header = "Username\tTask\tQuestion\tChoice\tCorrect\tRT\n";
+                        output_txt = header;
+                        output_txt += answerData.toString();
+                    } else {
+                        output_txt = answerData;
+                    }
+                    if (acc) {
+                        studySessionData.nStars++;
+                        studySessionData.triviaIndex.push(1);
+                    } else {
+                        studySessionData.triviaMiss++;
+                    }
+                }
+
+                // Uncomment below for JATOS deployment
+                jatos.studySessionData = studySessionData;
+
+                document.getElementById("instructionBox").style.visibility = 'hidden';
+                document.getElementById("nextPageMessage").innerText = redirMessage;
+                document.getElementById("nextPage").style.visibility = 'visible';
+                
+                // Uncomment below for JATOS deployment
+                setTimeout(() => {
+                    jatos.submitResultData(output_txt)
+                    .then(() => jatos.startComponentByPos(2));
+                }, 3000);
+            }
+
+            // DATA FUNCTIONS
+
+            // Shuffle elements in an array
+            function shuffle(array) {
+                let currentIndex = array.length, temporaryValue, randomIndex;
+
+                while (0 !== currentIndex) {
+
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex -= 1;
+
+                    temporaryValue = array[currentIndex];
+                    array[currentIndex] = array[randomIndex];
+                    array[randomIndex] = temporaryValue;
+                }
+                return array;
+            }
+
+            // STIMULUS FUNCTIONS
+
+            // Set up teddy image
+            function teddyPicker(vars) {
+                let source;
+                if (vars.acc2) {
+                    source = "img/teddy_everything.png";
+                    return source;
+                }
+                if (vars.acc1) {
+                    source = "img/teddy_lollipop.png";
+                    return source;
+                }
+                source = "img/teddy_name.png";
+                return source;
+            }
+
+            // Write the answers on the board
+            function setOpts(opts) {
+                boards = document.getElementsByClassName("answerDiv");
+                for (i = 0; i < boards.length; i++) {
+                    boards[i].innerText = opts[i];
+                }
+            }
+
+            // Handles answer choice
+            function buttonClicked(choice) {
+                trialEnd = Date.now();
+                document.getElementById("instructionBox").style.visibility = 'hidden';
+                trialChoice = currentOpts[choice - 1];
+                acc = trialChoice == currentTrivia.A;
+                lockAnswers();
+                feedback(acc);
+            }
+
+            // Presents feedback, saves
+            function feedback(acc) {
+                if (acc) {
+                    response = "CORRECT!";
+                    feedbackText = "You've won a bonus star!"
+                } else {
+                    response = "INCORRECT!";
+                    feedbackText = "The correct answer was: " + currentTrivia.A;
+                }
+                document.getElementById("questionTitle").innerText = response;
+                document.getElementById("questionText").innerText = feedbackText;
+                if (acc) {
+                    setTimeout(() => {starAnim(nStars)}, 3000);
+                } else {
+                    setTimeout(() => {endOfExperiment()}, 3000);
+                }
+            }
+
+            // Add a star to the star sheet
+            function starAnim(nStars) {
+                document.getElementById("boardText").style.visibility = 'hidden';
+                if (nStars == 0) {
+                    document.getElementById("oldStars").style.visibility = 'hidden';
+                } else {
+                    oldStarSrc = "img/star" + nStars + ".png";
+                    document.getElementById("oldStars").src = oldStarSrc;
+                }
+                newStarSrc = "img/star" + (nStars + 1) + ".png";
+                document.getElementById("newStars").src = newStarSrc;
+                document.getElementById("bigStar").style.visibility = 'visible';
+                $(".new").fadeIn(1500);
+                setTimeout(() => {endOfExperiment();}, 3000);
+            }
+
+             // Preload images
+             function preLoader(imgList) {
+                for (i = 0; i < imgList.length; i++) {
+                    let img = new Image();
+                    img.src = imgList[i];
+                }
+            }
+            
+        </script>
+    </body>
+</html>

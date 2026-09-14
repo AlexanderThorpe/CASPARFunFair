@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Goodbye</title>
+        <link href="styles/style.css" rel="stylesheet" />
+        <link href="styles/styleEnd.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karla:400,700">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald:300,400">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <!-- HTML STUFF FOR MAKING THE PAGE -->
+        <div class="backImg" style="background-image:  url('img/loading_page0.jpg')">
+        </div>
+        <div id="instructionBox" class="instruct-page">
+            <p class="customfont">
+                <span id="instructions">Congratulations, you've finished all the games!<br>
+                It's time to leave the fun fair now. Thank you for playing.<br>
+                We hope you've enjoyed your time here!</span>
+            </p>
+
+            <p class="customfont">
+                <span>Please wait while we redirect you...</span>
+            </p>
+        </div>
+
+        <div class="loading customfont" style="background-image: url('img/loading_page0.jpg')">
+        </div>
+
+        <script src="/assets/javascripts/jatos.js"></script>
+        
+        <script>
+            // JAVASCRIPT STUFF FOR RUNNING THE EXPERIMENT
+
+            // What to do when jatos.js is finished initializing
+            jatos.onLoad(function() {
+                const username = jatos.studySessionData.username;
+                const cohort = jatos.studySessionData.cohort;
+                var altFlag = jatos.studySessionData.altFlag;
+                const nCompleted = jatos.studySessionData.nCompleted;
+                const totalPoints = jatos.studySessionData.totalPoints;
+                const nStars = jatos.studySessionData.nStars;
+
+                var goodbyeMessage;
+                if (altFlag == 0) {
+                    altFlag = altCheck();
+                }
+                if (altFlag == 1) {
+                    goodbyeMessage = "You're not supposed to be here so soon.\nIn fact, I'm stunned you got here so quickly.\nI don't know whether to be upset that you passed by all our hard work,\nor thrilled someone found this super secret message.\nEither way, you can go.";
+                } else {
+                    goodbyeMessage = "Congratulations, you've finished all the games!\nYou scored a total of " + totalPoints + " points and collected " + nStars + " bonus stars.\nBut now it's time to leave the fun fair.\nThank you for playing. We hope you enjoyed your time here!";
+                }
+                $(".loading").fadeOut("slow");
+                document.getElementById("instructions").innerText = goodbyeMessage;
+                jatos.endStudyAjax(true);
+                setTimeout(()=>{pointsLink()}, 10000);
+                
+                // Build the redirect link to award credit, send them out
+                function pointsLink() {
+                    setTimeout(function() {
+                        switch (cohort) {
+                            case 'test':
+                                whereNext =  "https://www.youtube.com/watch?v=8PVal8Fy7CM";
+                                break;
+                            case 'sona':
+                                whereNext = "https://uninewcastle.questionpro.com.au/SONAFunFair?username=" + username + "&cohort=" + cohort;
+                                break;
+                            case 'pro':
+                                whereNext = "https://uninewcastle.questionpro.com.au/ProlificFunFair?username=" + username + "&cohort=" + cohort;
+                                break;
+                            default:
+                                whereNext = "https://uninewcastle.questionpro.com.au/Stage3NonMandatory?username=" + username + "&cohort=" + cohort;
+                        }
+                        window.location.href = whereNext;
+                    }, 500);
+                }
+
+                function altCheck() {
+                    if (nCompleted < 8) {
+                        return 1;
+                    }
+                   return 0;
+                }
+            });
+        </script>
+    </body>
+</html>

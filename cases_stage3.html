@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Briefcase Game</title>
+        <link href="styles/style.css" rel="stylesheet" />
+        <link href="styles/styleCase.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karla:400,700">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald:300,400">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <div id="instructionBox" class="instruct-page customfont" style="visibility: hidden">
+            <p>
+                <span id="instructions">Welcome to the briefcase game! The game consists of several rounds,<br>
+                but the goal is always the same: get as many points as you can!<br>
+                Click on a briefcase to open it, and gain the points it contains.<br>
+                How many points will you get? That depends on which briefcase you pick...</span>
+            </p>
+        </div>
+        <div class="stageDiv" id="stageDiv" style="visibility: hidden">
+            <div class="caseDiv" id="leftCase" style="left: 27.93%; visibility: hidden">
+                <img class="caseImg" src="img/case1.png" onClick="caseClicked('left')">
+            </div>
+            <div class="openCaseDiv" id="leftOpen" style="left: 27.93%; visibility: hidden">
+                <img class="caseImg" src="img/caseOpen1.png">
+                <div class="pointsDiv" id="leftPoints">
+                    +32 pts
+                </div>
+            </div>
+            <div class="caseDiv" id="rightCase" style="left: 61.49%; visibility: hidden">
+                <img class="caseImg" src="img/case1.png" onClick="caseClicked('right')">
+            </div>
+            <div class="openCaseDiv" id="rightOpen" style="left: 61.49%; visibility: hidden">
+                <img class="caseImg" src="img/caseOpen1.png">
+                <div class="pointsDiv" id="rightPoints">
+                    +3 pts
+                </div>
+            </div>
+            
+            
+        </div>
+        <div id="scoreBox" class="scoreBox customfont" style="visibility: hidden">
+            <p>
+                <span id="score">POINTS: 0</span>
+            </p>
+        </div>
+        <div id="nextPage" class="redirect customfont" style="visibility: hidden">
+            <p>
+                Well done, you've finished this game!<br>
+                Now let's play another game.
+            </p>
+        </div>
+
+        <div class="loading customfont" style="background-image: url('img/loading_page1.jpg')">
+        </div>
+
+        <div class="transition" style="display: none">
+            <p> </p>
+        </div>
+        
+        <div class="prizeDiv" id="prizeDiv" style="background-image: url('img/prizeHead.png'); visibility: hidden">
+            <div class="prizeHead">
+            </div>
+            <div class="starDiv" style="background-image: url('img/starBack.png'); left: 29%">
+                <img class="prizeImg" id="starImg">
+            </div>
+            <!-- <div class="teddyDiv" style="left: 27%">
+                <img class="prizeImg" id="teddyImg">
+                <img class="prizeImg" id="nameTag">
+            </div> -->
+        </div>
+
+        <script src="/assets/javascripts/jatos.js"></script>
+        <script>
+            // What to do when jatos.js is finished initializing
+            //UNCOMMENT FOR JATOS DEPLOYMENT
+            jatos.onLoad(function() {
+                studySessionData = jatos.studySessionData;
+                username = studySessionData["username"];
+            });
+
+            $(window).bind("beforeunload", function(){
+                return confirm(); 
+            });
+
+            var studySessionData;
+            var username;
+            const nTrials = 20;
+            const nBlocks = 3;
+            var block = [];
+            var trial = [];
+            var hCount = [];
+            var lCount = [];
+            var trialChoice = 'N';
+            var caseConds = ['H', 'L'];
+            var blockCaseConds = ['N', 'N'];
+            const rawRates = {'Block 1': {'Rates': {'H': 0.8, 'L': 1}, 'pay': {'H': 4, 'L': 3}}, 'Block 2': {'Rates': {'H': 0.2, 'L': 0.25}, 'pay': {'H': 4, 'L': 3}}, 'Block 3': {'Rates': {'H': 0.8, 'L': 1}, 'pay': {'H': 4, 'L': 3}}};
+            var preTrig = 1;
+            var allRates = rateShuffle(rawRates);
+            var blockRates;
+            var blockPay;
+            var trialPay;
+            var thisChoice;
+            var trialPts = 0;
+            var score = 0;
+            var blockData = new Array();
+            var dataOutput = [];
+            var output_txt;
+            var trialStart;
+            var trialEnd;
+            var trigger = false;
+
+            var caseImg = ['img/loading_page1.jpg', 'img/prizeHead.png', 'img/starBack.png', 'img/star1.png', 'img/star2.png', 'img/star3.png', 'img/star4.png', 'img/star5.png', 'img/star6.png',
+            'img/star7.png', 'img/star8.png', 'img/prizeHead.png', 'img/hotstove_background.jpg', 'img/hotstove_background_multiplenum.jpg','img/case1.png', 'img/case2.png', 'img/case3.png', 'img/caseOpen1.png', 'img/caseOpen2.png',
+            'img/caseOpen3.png'];
+
+            preLoader(caseImg);
+
+            // UNCOMMENT FOR JATOS DEPLOYMENT
+            waitForJATOS();
+
+            // EXPERIMENTAL FLOW FUNCTIONS
+
+            // Check whether JATOS has loaded before initialising
+            function waitForJATOS() {
+                let name = username;
+                if (name !== undefined) {
+                    init();
+                }
+                else {
+                    setTimeout(waitForJATOS, 300);
+                }
+            }
+
+            // Initialise experiment
+            function init() {
+                $(".loading").fadeOut("slow");
+                if (studySessionData.triviaMiss >= 3) {
+                    document.body.style.backgroundImage = 'url(img/hotstove_background_multiplenum.jpg)'
+                }
+                document.getElementById("stageDiv").style.visibility = 'visible';
+                document.getElementById("leftCase").style.visibility = 'visible';
+                document.getElementById("rightCase").style.visibility = 'visible';
+                document.getElementById("prizeDiv").style.visibility = 'visible';
+                document.getElementById("starImg").src = "img/star" + studySessionData.nStars + ".png";
+                document.getElementById("instructionBox").style.visibility = 'visible';
+                document.getElementById("scoreBox").style.visibility = 'visible';
+                block.push(1);
+                blockStarter(block);
+            }
+
+            // Initialise a block
+            function blockStarter(block) {
+                blockCaseConds = setCaseConds();
+                blockRates = setBlockRates(block);
+                blockPay = setBlockPay(block);
+                hCount = [];
+                trial = [];
+                trial.push(1);
+                trialStarter(trial);
+            }
+
+            // Initialise a trial
+            function trialStarter(trial) {
+                trialStart = Date.now();
+                toggleCaseClick('click');
+            }
+
+            // Finish this trial
+            function trialEnder(trial) {
+                trialPay = rollRewards(blockRates, blockPay);
+                if (trial.length == 1) {
+                    document.getElementById("instructionBox").style.visibility = 'hidden';
+                }
+                if (block.length == preTrig & trial.length == 1) {
+                    trialChoice = 'H';
+                    if (thisChoice == 'left') {
+                        blockCaseConds = ['H', 'L'];
+                    } else {
+                        blockCaseConds = ['L', 'H'];
+                    }
+                } else if (trigger & block.length == 3 & trial.length == 1) {
+                    trialChoice = 'H';
+                    if (thisChoice == 'left') {
+                        blockCaseConds = ['H', 'L'];
+                    } else {
+                        blockCaseConds = ['L', 'H'];
+                    }
+                } else {
+                    trialChoice = choiceChecker(thisChoice);
+                }
+                if (trialChoice == 'H') {
+                    if (block.length == preTrig & hCount.length <= 2) {
+                        hCount.push(1);
+                        trialPay[0] = 0;
+                    } else if (trigger & block.length == 3 & hCount.length <= 2) {
+                        hCount.push(1);
+                        trialPay[0] = 0;
+                    }
+                    trialPts = trialPay[0];
+                } else {
+                    if (block.length <= 3) {
+                        lCount.push(1);
+                    }
+                    trialPts = trialPay[1];
+                }
+                pointsWriter(trialPay);
+                if (trialPts > 0) {
+                    winnerAnim(trialPts, 1000);
+                }
+                pushData();
+                if (trial.length == nTrials) {
+                    setTimeout(function() {
+                        closeCase(thisChoice);
+                        blockEnder(block);}, 1200);
+                } else {
+                    trial.push(1);
+                    setTimeout(function() {
+                        closeCase(thisChoice);
+                        trialStarter(trial);}, 1200);
+                }
+            }
+
+            // Finish this block
+            function blockEnder(block) { 
+                closeCase(thisChoice);
+                toggleCaseClick('noClick');
+                document.getElementById("instructionBox").style.visibility = 'visible';
+                if (block.length < nBlocks) {
+                    let benchmark = 0.5 * nTrials;
+                    if (lCount.length > benchmark & trigger == false) {
+                        trigger = true;
+                    }
+                    lCount = [];
+                    document.getElementById("instructions").innerText = "Block complete!\nWe're now going to switch out the cases for a different set,\nwith different payout rates and values...";
+                    block.push(1);
+                    caseTransition();
+                    setTimeout(function(){caseChanger(block);}, 2500);
+                    setTimeout(function(){blockStarter(block);}, 5000);
+                } else if (block.length == nBlocks) {
+                    document.getElementById("instructions").innerText = "Block complete!";
+                    dataSave();
+                    setTimeout(() => {endOfExperiment();}, 3000);
+                }
+                
+            }
+
+            // End the experiment
+            function endOfExperiment() {
+                $(window).unbind("beforeunload");
+                studySessionData.nCompleted++;
+                studySessionData.totalPoints = studySessionData.totalPoints + score;
+                taskIndex = studySessionData.taskIndex;
+                studySessionData.taskIndex = taskIndex.slice(1);
+
+                studySessionData.completedTasks["cases"] = true;
+                studySessionData.cameFrom = "cases";
+
+                // Uncomment below for JATOS deployment
+                jatos.studySessionData = studySessionData;
+
+                output_txt = "Username" + "," + "Task" + "," + "Trigger" + "," + "Block" + "," + "Trial" + "," + "CaseChosen" + "," + "Choice" + "," + "Points" + "," + "RT\n";
+
+                for (var i = 0; i < dataOutput.length; i++) {
+                    output_txt += dataOutput[i].toString() + "\n";
+                }
+
+                var expVarTxt = output_txt;
+                var expSendVariables = expVarTxt;
+
+                document.getElementById("instructionBox").style.visibility = 'hidden';
+                document.getElementById("leftCase").style.visibility = 'hidden';
+                document.getElementById("rightCase").style.visibility = 'hidden';
+                document.getElementById("scoreBox").style.visibility = 'hidden';
+                document.getElementById("nextPage").style.visibility = 'visible';
+                
+                // Uncomment below for JATOS deployment
+                setTimeout(() => {
+                    jatos.uploadResultFile(expSendVariables, "ID" + username + "_Cases_Stage3_Data.csv")
+                    .then(() => jatos.startComponentByPos(11));
+                }, 3000);
+            }
+
+            // DATA FUNCTIONS
+
+            // Shuffle Block 1 and 2 pay rates
+            function rateShuffle(oldRates) {
+                let newRates = JSON.parse(JSON.stringify(rawRates));
+                if (Math.floor(Math.random() + 0.5) == 0) {
+                    newRates['Block 1'].Rates['H'] = oldRates['Block 2'].Rates['H'];
+                    newRates['Block 1'].Rates['L'] = oldRates['Block 2'].Rates['L'];
+                    newRates['Block 2'].Rates['H'] = oldRates['Block 1'].Rates['H'];
+                    newRates['Block 2'].Rates['L'] = oldRates['Block 1'].Rates['L'];
+                    preTrig = 2;
+                }
+                return newRates;
+            }
+            
+            // Get the probabilities for H and L for this block
+            function setBlockRates(block) {
+                let blockName = "Block " + block.length;
+                let thisBlock = allRates[blockName];
+                let rateData = thisBlock.Rates;
+                return([rateData['H'], rateData['L']]);
+            }
+
+            // Get the payouts for H and L for this block
+            function setBlockPay(block) {
+                let blockName = "Block " + block.length;
+                let thisBlock = allRates[blockName];
+                let payData = thisBlock.pay;
+                return([payData['H'], payData['L']]);
+            }
+
+            // Set the rewards for a trial
+            function rollRewards(rate, pay) {
+                let h_check = Math.random();
+                let h_pay = 0;
+                if (h_check < rate[0]) {
+                    h_pay = pay[0];
+                }
+                let l_check = Math.random();
+                let l_pay = 0;
+                if (l_check < rate[1]) {
+                    l_pay = pay[1];
+                }
+                return([h_pay, l_pay]);
+            }
+
+            // Check whether the choice was H or L
+            function choiceChecker(ch) {
+                switch (ch) {
+                    case 'left':
+                        return blockCaseConds[0];
+                        break;
+                    case 'right':
+                        return blockCaseConds[1];
+                        break;
+                    default: //We shouldn't be here
+                        console.log("choiceChecker switch broke");
+                }
+            }
+
+            // Push data per trial
+            function pushData() {
+                let rt = trialEnd - trialStart;
+                trialStart = [];
+                trialEnd = [];
+                let thisTask = studySessionData.nCompleted + 1
+                blockData.push([username, thisTask, trigger, block.length, trial.length, thisChoice, trialChoice, trialPts, rt]);
+            }
+
+            // Save data for output as CSV
+            function dataSave() {
+                usernameVec = [];
+                taskVec = [];
+                groupVec = [];
+                blockVec = [];
+                trialVec = [];
+                caseVec = [];
+                choiceVec = [];
+                ptsVec = [];
+                rtVec = [];
+
+                for (var i = 0; i < blockData.length; i++) {
+                    usernameVec.push(blockData[i][0]);
+                    taskVec.push(blockData[i][1]);
+                    groupVec.push(blockData[i][2]);
+                    blockVec.push(blockData[i][3]);
+                    trialVec.push(blockData[i][4]);
+                    caseVec.push(blockData[i][5]);
+                    choiceVec.push(blockData[i][6]);
+                    ptsVec.push(blockData[i][7]);
+                    rtVec.push(blockData[i][8]);
+                    
+                    dataOutput.push(usernameVec[i] + "," + taskVec[i] + "," + groupVec[i] + "," + blockVec[i] + "," + trialVec[i] + "," + caseVec[i] + "," + choiceVec[i] + "," +  ptsVec[i] + "," + rtVec[i]);
+                }
+            }
+
+            // STIMULUS FUNCTIONS
+
+            // Change the assets for the cases
+            function caseChanger(block) {
+                let theseCases = document.getElementsByClassName("caseImg");
+                theseCases[0].src = "img/case" + block.length + ".png";
+                theseCases[2].src = "img/case" +  block.length + ".png";
+                theseCases[1].src = "img/caseOpen" +  block.length + ".png";
+                theseCases[3].src = "img/caseOpen" +  block.length + ".png";
+            }
+
+            // Set up teddy image
+            function teddyPicker(vars) {
+                let source;
+                if (vars.acc2) {
+                    source = "img/teddy_everything.png";
+                    return source;
+                }
+                if (vars.acc1) {
+                    source = "img/teddy_lollipop.png";
+                    return source;
+                }
+                source = "img/teddy_name.png";
+                return source;
+            }
+
+            // Set rewards by trial
+            function pointsWriter(trialPay) {
+                let pointsBoxes = document.getElementsByClassName("pointsDiv");
+                let hMessage = trialPay[0] + " pts";
+                let lMessage = trialPay[1] + " pts";
+                if (blockCaseConds[0] == 'H') {
+                    pointsBoxes[0].innerText = hMessage;
+                    pointsBoxes[1].innerText = lMessage;
+                } else {
+                    pointsBoxes[1].innerText = hMessage;
+                    pointsBoxes[0].innerText = lMessage;
+                }
+            }
+
+            // Open a case
+            function openCase(thisChoice) {
+                let thisCase = thisChoice + "Case";
+                let thisOpen = thisChoice + "Open";
+                let thisPoints = thisChoice + "Points";
+                document.getElementById(thisCase).style.visibility = 'hidden';
+                document.getElementById(thisOpen).style.visibility = 'visible';
+            }
+
+            // Close a case
+            function closeCase(thisChoice) {
+                let thisCase = thisChoice + "Case";
+                let thisOpen = thisChoice + "Open";
+                document.getElementById(thisCase).style.visibility = 'visible';
+                document.getElementById(thisOpen).style.visibility = 'hidden';
+            }
+
+            // Toggle clickability
+            function toggleCaseClick(changeVal) {
+                let bothCases = document.getElementsByClassName("caseImg");
+                switch (changeVal) {
+                    case 'click':
+                    bothCases[0].onclick = function() {caseClicked("left")};
+                    bothCases[2].onclick = function() {caseClicked("right")};
+                        break;
+                    case 'noClick':
+                    bothCases[0].onclick = null;
+                    bothCases[2].onclick = null;
+                        break;
+                    default: // Should not happen
+                        console.log('toggleCaseClick switch broken');
+                }
+            }
+
+            // What happens when a case is clicked
+            function caseClicked(clickChoice) {
+                trialEnd = Date.now();
+                thisChoice = clickChoice;
+                openCase(thisChoice);
+                toggleCaseClick('noClick');
+                trialEnder(trial);
+            }
+
+            // Add points to total score
+            function winnerAnim(winnings, timer) {
+                let frameScore = score;
+                score = score + winnings;
+                frameInt = timer / (score - frameScore);
+                framesLeft = timer / frameInt;
+                let countdownTimer = setInterval(function(){
+                framesLeft--;
+                frameScore++;
+                document.getElementById("score").innerText = "POINTS: " + frameScore;
+                if(framesLeft <= 0) {
+                    clearInterval(countdownTimer);
+                }
+                },frameInt);
+            }
+
+            // Set the conditions of the cases for this block
+            function setCaseConds() {
+                let theseConds;
+                testVal = Math.random() + 0.5
+                randVal = Math.floor(testVal);
+                switch(randVal) {
+                    case 0:
+                        theseConds = ['H', 'L'];
+                        return theseConds;
+                        break;
+                    case 1:
+                        theseConds = ['L', 'H'];
+                        return theseConds;
+                        break;
+                    default: // This should not happen
+                        console.log('setCaseConds switch broke');
+                }
+            }
+
+            // Move between blocks
+            function caseTransition() {
+                $(".transition").fadeIn(2500);
+                setTimeout(() => {$(".transition").fadeOut(2500);}, 2500);
+                
+            }
+
+            // Preload images
+            function preLoader(imgList) {
+                for (i = 0; i < imgList.length; i++) {
+                    let img = new Image();
+                    img.src = imgList[i];
+                }
+            }
+
+        </script>
+    </body>
+</html>

@@ -1,0 +1,112 @@
+body {
+    background-image: url('../img/trivia_board.jpg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% 100%;
+    border: 0px;
+    margin: 0px;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.boardDiv {
+    position: absolute;
+    width: 57.23%;
+    height: 48.05%;
+    top: 27.21%;
+    left: 21.61%;
+    border: 0px;
+    margin: 0px;
+}
+
+.answersDiv {
+    position: absolute;
+    width: 80.99%;
+    height: 19.79%;
+    top: 77.34%;
+    left: 9.51%;
+    border: 0px;
+    margin: 0px;
+}
+
+.answerBoard {
+    border: 0px;
+    margin: 0px;
+    position: absolute;
+    display: inline;
+    height: 100%;
+    width: 23%;
+    top: 0%;
+}
+
+.answerImg {
+    width: 100%;
+    height: 100%;
+}
+
+.bigText {
+    font-size: 7vh;
+    text-align: center;
+}
+
+.qText {
+    font-size: 4vh;
+    text-align: center;
+    width: 80%;
+    left: 10%;
+}
+
+.ans {
+    font-size: 4vh;
+    z-index: 15;
+    position: absolute;
+    height: 40%;
+    width: 80%;
+    top: 30%;
+    left: 10%;
+    justify-content: center;
+    /* font-size: 5.5vh; */
+    text-rendering: auto;
+    text-align: center;
+}
+
+.clickDiv {
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    height: 100%;
+    width: 100%;
+    z-index: 13;
+}
+
+.instruct-page {
+    font-size: 5vh
+}
+
+.bigStarDiv {
+    position: absolute;
+    top: 30%;
+    left: 35%;
+    height: auto;
+    width: 30%;
+    aspect-ratio: 1;
+    z-index: 20;
+}
+
+.bigStarImg {
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+}
+
+.new {
+    z-index: 25;
+}
+
+.redirect {
+    font-size: 4vh;
+    z-index: 30;
+}

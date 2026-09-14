@@ -1,0 +1,246 @@
+body { 
+    background-image: url('../img/lottery_de_background.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% 100%;
+    border: 0px;
+    margin: 0px;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+img {
+    height: auto;
+}
+
+.results-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid black;
+    cursor: pointer;
+}
+
+.centered-instructions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.canvas-container {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.win-image {
+    position: absolute;
+    top: 50%;
+    left: 45%;
+    width: 200px;
+}
+
+.last-result {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: white;
+    padding: 5px;
+    border: 1px solid black;
+}
+
+.buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    column-gap: 20px;
+    margin-top: 20px;
+}
+
+.jspsych-btn {
+    width: 100px;
+    height: 138px;
+    padding: 0;
+    margin: 0;
+    border: 5px solid transparent;
+}
+
+.jspsych-btn img {
+    width: 100%;
+    height: 100%;
+}
+
+.jspsych-btn.default {
+    border-color: red;
+}
+
+.jspsych-btn:hover {
+    border-color: red;
+}
+
+/* New CSS for points container */
+.points-container {
+    position: absolute;
+    top: 74.1%;
+    left: 11.49%;
+    width: 5.7%;
+    height: 6.4%;
+    align-items: center;
+}
+
+.points-container span {
+    font-size: 4vh;
+    color: red;
+    font-weight: bold;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    top: 30%;
+}
+
+.prizeDiv {
+    z-index: -1;
+}
+
+.redirect {
+    position: absolute;
+    left: 25%;
+    width: 50%;
+    top: 30%;
+    height: auto;
+}
+
+.confirm-button {
+    background-color: #555555;
+    border: none;
+    color: white;
+    font-size: 1.2em;
+    height: 1em;
+    width: 1.5em;
+    padding: 5px 10px;
+    border: 1px solid #000;
+    margin: 5px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.confirm-button:hover {
+    background-color: #6f6f6f;
+}
+
+.confirm-button:disabled {
+    background-color: #555555;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.displayCard {
+    background-color: red;
+    position: absolute;
+    left: 180;
+    top: 70;
+    width: 760;
+    height: 420;
+    z-index: 30;
+}
+
+.card-container {
+    position: absolute;
+    width: 52%;
+    height: 15%;
+    left: 23.5%;
+    bottom: 5%;
+}
+
+.grid-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0%;
+    top: 0%;
+    display: grid;
+    grid-template-areas: "button1 button2 button3 button4 button5 button6 button7 button8 button9 button10";
+}
+
+.grid-item {
+    width: 100%;
+    height: 100%;
+}
+
+.small_btn {
+    background-color: #ffffff;
+    position: absolute;
+    border: 5px solid transparent;
+    color: white;
+    width: 5.2vw;
+    height: 15vh;
+    font-size: 1.2em;
+    border-radius: 3px;
+}
+
+.small_btn:hover {
+    border-color: red;
+}
+
+.cardPix {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0%;
+    top: 0%;
+}
+
+
+.grid-item:nth-child(1) {
+    grid-area: button1;
+}
+
+.grid-item:nth-child(2) {
+    grid-area: button2;
+}
+
+.grid-item:nth-child(3) {
+    grid-area: button3;
+}
+
+.grid-item:nth-child(4) {
+    grid-area: button4;
+}
+
+.grid-item:nth-child(5) {
+    grid-area: button5;
+}
+
+.grid-item:nth-child(6) {
+    grid-area: button6;
+}
+
+.grid-item:nth-child(7) {
+    grid-area: button7;
+}
+
+.grid-item:nth-child(8) {
+    grid-area: button8;
+}
+
+.grid-item:nth-child(9) {
+    grid-area: button9;
+}
+
+.grid-item:nth-child(10) {
+    grid-area: button10;
+}
+
+.card-canvas {
+    position: absolute;
+    z-index: 10;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+}

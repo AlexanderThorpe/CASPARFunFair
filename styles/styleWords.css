@@ -1,0 +1,54 @@
+.backImg {
+    position: absolute;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% 100%;
+    background-position: center;
+    width: 100vw;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    border: 0px;
+    padding: 0px;
+    margin: 0px 0px;
+    z-index: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 20px;
+    background-image: url('../img/mere_exposure_background_onenum.jpg');
+    background-size: cover;  /* Ensures it covers the whole page */
+    background-position: center;
+    background-repeat: no-repeat; /* Prevents tiling */
+}
+
+p {
+    font-size: 20px;
+}
+
+.jspsych-display-element {
+    max-width: 100vw;
+    margin: auto;
+    color: white; /* Makes text white */
+    font-size: 20px; /* Adjust font size as needed */
+}
+
+.jspsych-content {
+    max-width: 50%;
+}
+
+.jspsych-survey-likert-opt-label {
+    color: white !important; /* Forces Likert labels to be white */
+    font-size: 20px; /* Adjust the size if needed */
+}
+
+.redirect {
+    position: absolute;
+    left: 25%;
+    width: 50%;
+    top: 30%;
+    height: auto;
+}

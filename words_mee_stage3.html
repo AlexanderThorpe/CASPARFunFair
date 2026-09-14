@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Odd Words</title>
+
+        <!-- Include jsPsych CSS from a stable CDN -->
+        <script src="jspsych-8.0/jspsych.js"></script>
+        <script src="jspsych-8.0/plugin-html-button-response.js"></script>
+        <script src="jspsych-8.0/plugin-html-keyboard-response.js"></script>
+        <script src="jspsych-8.0/plugin-survey-likert.js"></script>
+        <link href="jspsych-8.0/jspsych.css" rel="stylesheet" type="text/css">
+        <link href="styles/style.css" rel="stylesheet" />
+        <link href="styles/styleWords.css" rel="stylesheet" />
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karla:400,700">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald:300,400">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+
+    <body>
+        <div class="loading customfont" style="background-image: url('img/loading_page1.jpg'); z-index: 100;">
+        </div>
+
+        <div class="prizeDiv" id="prizeDiv" style="background-image: url('img/prizeHead.png')">
+            <div class="prizeHead">
+            </div>
+            <div class="starDiv" style="background-image: url('img/starBack.png'); left:29%">
+                <img class="prizeImg" id="starImg">
+            </div>
+            <!-- <div class="teddyDiv" style="left: 27%">
+                <img class="prizeImg" id="teddyImg">
+                <img class="prizeImg" id="nameTag">
+            </div> -->
+        </div>
+
+        <div id="nextPage" class="redirect customfont" style="visibility: hidden">
+            <p>
+                Well done, you've finished this game!<br>
+                Now let's play another game.
+            </p>
+        </div>
+
+        <script src="/assets/javascripts/jatos.js"></script>
+        <script>
+            // What to do when jatos.js is finished initializing
+            //UNCOMMENT FOR JATOS DEPLOYMENT
+            jatos.onLoad(function() {
+                username = jatos.studySessionData["username"];
+                studySessionData = jatos.studySessionData;
+            });
+
+            $(window).bind("beforeunload", function(){
+                return confirm(); 
+            });
+
+            const jsPsych = initJsPsych();
+            var timeline = [];
+
+            // Pseudoword list
+            const pseudowords = ['Ikitaf', 'Afworbu', 'Saricik', 'Biwojni', 'Nansoma', 'Kadirga', 'Enanwal', 'Dilikli', 'Zabulon', 'Lokanta', 'Jandara', 'Civadra'];
+            // Possible repetition values (each repeated twice)
+            const repetitionValues = [0, 0, 1, 1, 2, 2, 5, 5, 10, 10, 25, 25];
+            //For testing purposes, let's make all repetitions 1
+            // var repetitionValues = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+            var username;
+            var studySessionData;
+            var dataOutput = [];
+
+            var wordsImg = ['img/loading_page1.jpg', 'img/prizeHead.png', 'img/starBack.png', 'img/star1.png', 'img/star2.png', 'img/star3.png', 'img/star4.png', 'img/star5.png', 'img/star6.png',
+            'img/star7.png', 'img/star8.png', 'img/mere_exposure_background_onenum.jpg', 'img/mere_exposure_background_manynum.jpg'];
+
+            preLoader(wordsImg);
+
+            // UNCOMMENT FOR JATOS DEPLOYMENT
+            waitForJATOS();
+
+            // Check whether JATOS has loaded before initialising
+            function waitForJATOS() {
+                let name = username;
+                if (name !== undefined) {
+                    init();
+                }
+                else {
+                    setTimeout(waitForJATOS, 300);
+                }
+            }
+
+
+            // Preload images
+            function preLoader(imgList) {
+                for (i = 0; i < imgList.length; i++) {
+                    let img = new Image();
+                    img.src = imgList[i];
+                }
+            }
+
+            // Initialise the experiment
+            function init() {
+                $(".loading").fadeOut("slow");
+                if (studySessionData.triviaMiss >= 3) {
+                    document.body.style.backgroundImage = 'url(img/mere_exposure_background_manynum.jpg)';
+                }
+                document.getElementById("starImg").src = "img/star" + studySessionData.nStars + ".png";
+                setTimeline();
+                jsPsych.run(timeline);
+            }
+
+            // End the experiment
+            function endOfExperiment() {
+                $(window).unbind("beforeunload");
+                document.getElementById("nextPage").style.visibility = 'visible';
+
+                studySessionData.nCompleted++;
+                taskIndex = studySessionData.taskIndex;
+                studySessionData.taskIndex = taskIndex.slice(1);
+
+                studySessionData.completedTasks["words"] = true;
+                studySessionData.cameFrom = "words";
+                
+                // Uncomment below for JATOS deployment
+                jatos.studySessionData = studySessionData;
+
+                // Uncomment below for JATOS deployment
+                setTimeout(() => {
+                    jatos.uploadResultFile(dataOutput, "ID" + username + "_Words_Stage3_Data.csv")
+                    .then(() => jatos.startComponentByPos(11));
+                }, 3000);
+            }
+
+            // Shuffle array utility
+            function shuffle(array) {
+                return array.sort(() => Math.random() - 0.5);
+            }
+
+            // Step 1: Present words with assigned repetitions and add fixation cross
+            function generatePseudowordTrials() {
+                var trials = [];
+
+                // Shuffle the pseudowords and repetition values to ensure randomization
+                var shuffledPseudowords = shuffle(pseudowords);
+                var shuffledRepetitions = shuffle(repetitionValues);
+
+                for (var i = 0; i < shuffledPseudowords.length; i++) {
+                    var word = shuffledPseudowords[i];
+                    var repetitions = shuffledRepetitions[i];  // Pick corresponding repetition value
+
+                    // Add the pseudoword presentation trials (based on repetition)
+                    for (var j = 0; j < repetitions; j++) {
+                        // Fixation cross for 200ms
+                        trials.push({
+                            type: jsPsychHtmlKeyboardResponse,
+                            stimulus: '<div style="font-size: 40px;">+</div>',
+                            choices: "NO_KEYS",
+                            trial_duration: 200 // 200ms fixation cross
+                        });
+
+                        // Add the pseudoword presentation (2s per word)
+                        trials.push({
+                            type: jsPsychHtmlKeyboardResponse,
+                            stimulus: '<div style="font-size: 40px;">' + word + '</div>',
+                            choices: "NO_KEYS",
+                            trial_duration: 2000 // 2 seconds per word
+                        });
+                    }
+                }
+
+                // Shuffle the entire trial list to randomly distribute the repetitions
+                return shuffle(trials);
+            }
+
+            // Step 2: Rating scale for each pseudoword
+            function generateRatingTrials() {
+                var ratingTrials = [];
+                for (var i = 0; i < pseudowords.length; i++) {
+                    ratingTrials.push({
+                        type: jsPsychSurveyLikert,
+                        questions: [
+                            {
+                                prompt: '<p>How do you feel about the word "' + pseudowords[i] + '"?<p>',
+                                labels: ['0 - Bad', '1', '2', '3', '4', '5', '6 - Good'],
+                                required: true
+                            }
+                        ],
+                        //Let's record the pseudoword in the data
+                        data: {
+                            pseudoword: pseudowords[i]
+                        },
+                        scale_width: 600
+                    });
+                }
+                return ratingTrials;
+            }
+
+            function setTimeline() {
+                // Step 3: Final message (Thank you screen)
+                var endMessage = {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: "<p>Thank you for participating!<br><br> You do not need to memorize the words.<br>Now let's play another game.</p>",
+                    trial_duration: 3000,
+                    choices: "NO_KEYS",
+                    on_finish: function () {
+                        //jsPsych.data.displayData();  // Display the data after the experiment
+                        dataOutput = jsPsych.data.get().csv();
+                        endOfExperiment();
+                    }
+                };
+
+                // Instruction screen
+                var intro = {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: '<p>In this tent of our fun fair, help us rate some odd words.\
+                        <br>After you see them all, please rate each word on a scale from 0 (bad) to 6 (good).\
+                        <br>You do not need to memorize the words.\
+                        <br><br>Press any key to begin.</p>',
+                    choices: "ALL_KEYS"
+                };
+                timeline.push(intro);
+
+                // Add the pseudoword presentation trials (with fixation cross and shuffled)
+                timeline = timeline.concat(generatePseudowordTrials());
+
+                // Add the rating trials
+                timeline = timeline.concat(generateRatingTrials());
+
+                // Add the final message
+                timeline.push(endMessage);
+            }
+        </script>
+
+    </body>
+
+</html>

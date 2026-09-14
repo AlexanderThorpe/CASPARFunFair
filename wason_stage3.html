@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Card Chest</title>
+        <!-- Loading jsPsych library and plugins -->
+        <script src="jspsych-8.0/jspsych.js"></script>
+        <script src="jspsych-8.0/plugin-html-button-response.js"></script>
+        <script src="jspsych-8.0/plugin-html-keyboard-response.js"></script>
+        <script src="jspsych-8.0/plugin-instructions.js"></script>
+        <script src="jspsych-8.0/plugin-preload.js"></script>
+
+        <!-- Linking stylesheets -->
+        <link href="jspsych-8.0/jspsych.css" rel="stylesheet" type="text/css">
+        <link href="styles/style.css" rel="stylesheet" />
+        <link href="styles/styleWason.css" rel="stylesheet" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+        <style>
+            .instruction-nav-btn {
+                width: 40%;
+                height: 2em;
+                padding: 10px;
+                border: 2px solid #000;
+                margin: 5px;
+                cursor: pointer;
+                background-color: #fff;
+                color: #000;
+                font-size: 2em;
+                background-image: url('img/wason_button.jpg');
+                background-size: cover;
+                background-repeat: no-repeat;
+                text-align: center;
+                line-height: 1.3em;
+            }
+            .instruction-nav-btn:hover {
+                background-color: #f0f0f0;
+            }
+
+            .card-front {
+                border: 4px solid transparent;
+                cursor: pointer;
+                transition: border 0.2s ease;
+            }
+            .card-front.selected {
+                border-color: #f39c12;
+            }
+
+            .button-container {
+                position: absolute;
+                bottom: 3%;
+                left: 25%;
+                width: 50%;
+                display: flex;
+                justify-content: space-around;
+            }
+
+            .flip-button {
+                width: 40%;
+                height: 2em;
+                padding: 10px;
+                background-color: #fff;
+                font-size: 2em;
+                cursor: pointer;
+                border: 2px solid #000;
+                text-align: center;
+                background-image: url('img/wason_button.jpg');
+                background-size: cover;
+            }
+            .flip-button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+
+            .next-button {
+                width: 40%;
+                height: 2em;
+                padding: 10px;
+                background-color: #fff;
+                font-size: 2em;
+                cursor: pointer;
+                border: 2px solid #000;
+                text-align: center;
+                background-image: url('img/wason_button.jpg');
+                background-size: cover;
+            }
+            .next-button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- Loading screen and prize area (hidden at first) -->
+        <div class="loading customfont" style="background-image: url('img/loading_page1.jpg')"></div>
+
+        <div class="prizeDiv" id="prizeDiv" style="background-image: url('img/prizeHead.png'); visibility: hidden">
+            <div class="prizeHead"></div>
+            <div class="starDiv" style="background-image: url('img/starBack.png'); left: 29%">
+                <img class="prizeImg" id="starImg">
+            </div>
+            <!-- <div class="teddyDiv">
+                <img class="prizeImg" id="teddyImg">
+                <img class="prizeImg" id="nameTag">
+            </div> -->
+        </div>
+
+        <div id="nextPage" class="redirect customfont" style="visibility: hidden">
+            <p>Well done, you've finished this game!<br>
+            Now let's play another game.
+            </p>
+        </div>
+
+        <!-- JATOS integration -->
+        <script src="/assets/javascripts/jatos.js"></script>
+        <script>
+            jatos.onLoad(function() {
+                studySessionData = jatos.studySessionData;
+                username = studySessionData["username"];
+            });
+
+            $(window).bind("beforeunload", function(){
+                return confirm(); 
+            });
+                
+            // Main experiment timeline
+            var timeline = [];
+
+            // Preload images
+            var preload = {
+                type: jsPsychPreload,
+                images: [
+                'img/wason_background.jpg',
+                'img/wason_button.jpg',
+                'img/loading_page1.jpg',
+                'img/prizeHead.png',
+                'img/starBack.png',
+                'img/star1.png','img/star2.png','img/star3.png','img/star4.png','img/star5.png','img/star6.png','img/star7.png','img/star8.png',
+                'img/wason_card_abs_sq1.jpg','img/wason_card_abs_sq2.jpg','img/wason_card_abs_sq3.jpg',
+                'img/wason_card_moonleft1.jpg','img/wason_card_moonleft2.jpg','img/wason_card_moonleft3.jpg',
+                'img/wason_card_circ1.jpg','img/wason_card_circ2.jpg','img/wason_card_circ3.jpg',
+                'img/wason_card_color_blue.jpg','img/wason_card_color_green.jpg','img/wason_card_color_red.jpg',
+                'img/wason_card_anleft1.jpg','img/wason_card_anright2.jpg','img/wason_card_bird_l1.jpg','img/wason_card_bird_l2.jpg','img/wason_card_bird_l3.jpg',
+                'img/wason_card_bird_r1.jpg','img/wason_card_bird_r2.jpg','img/wason_card_bird_r3.jpg','img/wason_card_squir2.jpg',
+                'img/wason_card_vowel1.jpg','img/wason_card_vowel2.jpg','img/wason_card_vowel3.jpg',
+                'img/wason_card_consonant1.jpg','img/wason_card_consonant2.jpg','img/wason_card_consonant3.jpg',
+                'img/wason_card_even1.jpg','img/wason_card_even2.jpg','img/wason_card_even3.jpg',
+                'img/wason_card_odd1.jpg','img/wason_card_odd2.jpg','img/wason_card_odd3.jpg'
+                ]
+            };
+            // timeline.push(preload);
+
+            // Session and user variables
+            var studySessionData;
+            var username;
+            var dataOutput = [];
+            var totalPoints = 0;
+            var blocks = 12;
+            var trialsPerBlock = 1;
+            var globalBlock = 1;
+            var globalTrial = 1;
+            var chosenCards = [];
+            var cardChoice = [];
+            window.flippedRoles = [];
+            var jsp = initJsPsych();
+
+            // Randomly decide if user can only flip two cards after certain blocks
+            let allowTwoFlips = (Math.random() < 0.5);
+
+            // Shuffle block order
+            var blockOrder = jsp.randomization.shuffle([1,2,3,4,5,6,7,8,9,10,11,12]);
+
+            // Instructions for each rule
+            var carnieWisdom = [
+                '<div class=\"ruleBox\">These cards have a <b>shape</b> on one side and a <b>letter</b> on the other side.<br><br>The rule is:<br>If a card has <b>rectangle</b> on one side, then it has a <b>vowel</b> on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have a <b>shape</b> on one side and a <b>colour</b> on the other side.<br><br>The rule is:<br>If a card has <b>moon</b> on one side, then it has a <b>red</b> card on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have an <b>animal</b> on one side and a <b>number</b> on the other side.<br><br>The rule is:<br>If a card has a <b>bird</b> on one side, then it has an <b>even</b> number on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have an <b>animal</b> on one side and a <b>letter</b> on the other side.<br><br>The rule is:<br>If a card has a <b>rabbit</b> on one side, then it has a <b>consonant</b> on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have a <b>colour</b> on one side and a <b>number</b> on the other side.<br><br>The rule is:<br>If a card has a <b>red</b> card on one side, then it has an <b>odd</b> number on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have a <b>colour</b> on one side and an <b>animal</b> on the other side.<br><br>The rule is:<br>If a card has a <b>blue</b> card on one side, then it has a <b>squirrel</b> on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have a <b>colour</b> on one side and an <b>animal</b> on the other side.<br><br>The rule is:<br>If a card has a <b>green</b> card on one side, then it has a <b>bird</b> on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have a <b>letter</b> on one side and a <b>shape</b> on the other side.<br><br>The rule is:<br>If a card has a <b>vowel</b> on one side, then it has a <b>rectangle</b> on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have a <b>letter</b> on one side and a <b>shape</b> on the other side.<br><br>The rule is:<br>If a card has a <b>consonant</b> on one side, then it has a <b>moon</b> on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have a <b>number</b> on one side and an <b>animal</b> on the other side.<br><br>The rule is:<br>If a card has an <b>even</b> number on one side, then it has a <b>rabbit</b> on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have a <b>number</b> on one side and a <b>colour</b> on the other side.<br><br>The rule is:<br>If a card has an <b>odd</b> number on one side, then it has a <b>blue</b> card on the opposite side.</div>',
+                '<div class=\"ruleBox\">These cards have an <b>animal</b> on one side and a <b>colour</b> on the other side.<br><br>The rule is:<br>If a card has a <b>squirrel</b> on one side, then it has a <b>green</b> card on the opposite side.</div>'
+            ];
+
+            // Used to record which rule applies in each block
+            var ruleStrings = [
+                'rectangle;vowel',
+                'moon;red',
+                'bird;even',
+                'rabbit;consonant',
+                'red;odd',
+                'blue;squirrel',
+                'green;bird',
+                'vowel;rectangle',
+                'consonant;moon',
+                'even;rabbit',
+                'odd;blue',
+                'squirrel;green'
+            ];
+
+            // Loading images to avoid flicker
+            var wasonImg = [
+                'img/loading_page1.jpg','img/prizeHead.png','img/starBack.png',
+                'img/star1.png','img/star2.png','img/star3.png','img/star4.png','img/star5.png','img/star6.png',
+                'img/star7.png','img/star8.png','img/prizeHead.png','img/wason_background.jpg', 'img/wason_background_multiplenum.jpg'
+            ];
+
+            var cardImg = [
+                'img/wason_button.jpg',
+                'img/wason_card_abs_sq1.jpg','img/wason_card_abs_sq2.jpg','img/wason_card_abs_sq3.jpg',
+                'img/wason_card_moonleft1.jpg','img/wason_card_moonleft2.jpg','img/wason_card_moonleft3.jpg',
+                'img/wason_card_circ1.jpg','img/wason_card_circ2.jpg','img/wason_card_circ3.jpg',
+                'img/wason_card_color_blue.jpg','img/wason_card_color_green.jpg','img/wason_card_color_red.jpg',
+                'img/wason_card_anleft1.jpg','img/wason_card_anright2.jpg','img/wason_card_bird_l1.jpg',
+                'img/wason_card_bird_l2.jpg','img/wason_card_bird_l3.jpg','img/wason_card_bird_r1.jpg',
+                'img/wason_card_bird_r2.jpg','img/wason_card_bird_r3.jpg','img/wason_card_squir2.jpg',
+                'img/wason_card_vowel1.jpg','img/wason_card_vowel2.jpg','img/wason_card_vowel3.jpg',
+                'img/wason_card_consonant1.jpg','img/wason_card_consonant2.jpg','img/wason_card_consonant3.jpg',
+                'img/wason_card_even1.jpg','img/wason_card_even2.jpg','img/wason_card_even3.jpg',
+                'img/wason_card_odd1.jpg','img/wason_card_odd2.jpg','img/wason_card_odd3.jpg'
+                ]
+            // Simple image preloader
+            function preLoader(imgList) {
+                for (var i = 0; i < imgList.length; i++) {
+                    let im = new Image();
+                    im.src = imgList[i];
+                }
+            }
+            preLoader(wasonImg);
+            preLoader(cardImg);
+
+            // UNCOMMENT FOR JATOS DEPLOYMENT
+            waitForJATOS();
+
+            // Check whether JATOS has loaded before initialising
+            function waitForJATOS() {
+                let name = username;
+                if (name !== undefined) {
+                    init();
+                }
+                else {
+                    setTimeout(waitForJATOS, 300);
+                }
+            }
+
+            // Check accessories on teddy
+            function teddyPicker(vars) {
+                let source;
+                if (vars.acc2) {
+                    source = "img/teddy_everything.png";
+                    return source;
+                }
+                if (vars.acc1) {
+                    source = "img/teddy_lollipop.png";
+                    return source;
+                }
+                source = "img/teddy_name.png";
+                return source;
+            }
+
+            // Initial setup
+            function init() {
+                $(".loading").fadeOut("slow");
+                if (studySessionData.triviaMiss >= 3) {
+                    document.body.style.backgroundImage = 'url(img/wason_background_multiplenum.jpg)'
+                }
+                setTimeline();
+                document.getElementById("prizeDiv").style.visibility = 'visible';
+                document.getElementById("starImg").src = "img/star" + studySessionData.nStars + ".png";
+                jsp.run(timeline);
+            }
+
+            // Wrap up experiment
+            function endOfExperiment() {
+                $(window).unbind("beforeunload");
+                document.getElementById("nextPage").style.visibility = 'visible';
+                if (studySessionData.completedTasks["wason"] == false) {
+                    studySessionData.nCompleted++;
+                    studySessionData.totalPoints = studySessionData.totalPoints + totalPoints;
+                    let taskIndex = studySessionData.taskIndex;
+                    studySessionData.taskIndex = taskIndex.slice(1);
+                }
+                studySessionData.completedTasks["wason"] = true;
+                studySessionData.cameFrom = "wason";
+
+                dataOutput = jsp.data.get().csv();
+
+                // Uncomment below for JATOS deployment
+                jatos.studySessionData = studySessionData;
+
+                
+                let filename = "ID" + username + "_Wason_Stage3_Data.csv";
+
+                // Uncomment below for JATOS deployment
+                setTimeout(() => {
+                    jatos.uploadResultFile(dataOutput, filename)
+                    .then(() => jatos.startComponentByPos(11));
+                }, 3000);
+            }
+
+            // Define a block
+            function generateBlock(block) {
+                var blockTimeline = [];
+                blockTimeline.push({
+                    ...cardChoice,
+                    data: { block: block }
+                });
+                return blockTimeline;
+            }
+
+            // Show score at certain points
+            var showScoreAfterThree = {
+                type: jsPsychInstructions,
+                pages: [],
+                show_clickable_nav: true,
+                button_label_next: "Next",
+                on_start: function(trial) {
+                    trial.pages = [
+                        '<div class="instruction-container"><div class="instruction-text">'+
+                        'You have earned ' + totalPoints +
+                        ' points so far out of a maximum of 120' +
+                        '</div></div>'
+                    ];
+                },
+                on_load: function() {
+                    document.querySelectorAll('.jspsych-btn').forEach(btn => {
+                        btn.classList.add('confirm-button', 'customfont1');
+                    });
+                }
+            };
+
+            var showScoreAfterSeven = {
+                type: jsPsychInstructions,
+                pages: [],
+                show_clickable_nav: true,
+                button_label_next: "Next",
+                button_label_previous: "Previous",
+                on_start: function(trial) {
+                    trial.pages = [
+                        '<div class="instruction-container"><div class="instruction-text">'+
+                        'You have earned ' + totalPoints +
+                        ' points so far out of a maximum of 280' +
+                        '</div></div>'
+                    ];
+                },
+                on_load: function() {
+                    document.querySelectorAll('.jspsych-btn').forEach(btn => {
+                        btn.classList.add('confirm-button', 'customfont1');
+                    });
+                }
+            };
+
+            // Create full timeline with instructions and blocks
+            function setTimeline() {
+                var instructions1 = {
+                    type: jsPsychInstructions,
+                    pages: [
+                        '<div class="instruction-container"><div class="instruction-text">' +
+                        'WELCOME<br><br>' +
+                        'You found the old carnies cards!<br><br>' +
+                        'There are twelve sets of cards. Each set of cards has a rule that they follow.<br>' +
+                        'Unfortunately, some of the cards got mixed up and we need you to make sure<br>' +
+                        'that the cards in each set correctly match the rule they are paired with.<br><br>' +
+                        'Select all of the cards you would like to flip over to check the rule<br>' +
+                        'before clicking the “FLIP” button. Each set has between 1-3 cards<br>' +
+                        'that need to be checked.<br><br>' +
+                        'Not every card needs to be flipped over to check the rule, and you will lose points<br>' +
+                        'for flipping a card that does not need to be checked. It is up to you<br>' +
+                        'to decide how many cards to check.<br><br>' +
+                        'You will gain points for each correct card you select and lose points<br>' +
+                        'for each incorrect card you choose.<br><br>' +
+                        'All your points will be tallied and awarded to you<br>' +
+                        'after you have finished the task.<br><br>' +
+                        '</div></div>'
+                    ],
+                    show_clickable_nav: true,
+                    button_label_next: "Next",
+                    button_label_previous: "Previous",
+                    on_load: function () {
+                        document.querySelectorAll('.jspsych-btn').forEach(btn => {
+                            btn.classList.add('confirm-button', 'customfont1');
+                        });
+                    }
+                };
+
+                var instructions1b = {
+                    type: jsPsychInstructions,
+                    pages: [
+                        '<div class="instruction-container"><div class="instruction-text">You may select up to a maximum of three cards to flip</div></div>'
+                    ],
+                    show_clickable_nav: true,
+                    button_label_next: "Next",
+                    button_label_previous: "Previous",
+                    on_load: function () {
+                        document.querySelectorAll('.jspsych-btn').forEach(btn => {
+                            btn.classList.add('confirm-button', 'customfont1');
+                        });
+                    }
+                };
+
+                var instructions2b = {
+                    type: jsPsychInstructions,
+                    pages: [
+                        '<div class="instruction-container"><div class="instruction-text">' +
+                        'For the remaining trials you may only select up to a maximum of two cards to flip.<br><br>' +
+                        'This may mean in some rounds you are unable to flip all the cards required to test the rule,<br>' +
+                        'so just flip the ones you are most certain about.' +
+                        '</div></div>'
+                    ],
+                    show_clickable_nav: true,
+                    button_label_next: "Next",
+                    button_label_previous: "Previous",
+                    on_load: function () {
+                        document.querySelectorAll('.jspsych-btn').forEach(btn => {
+                            btn.classList.add('confirm-button', 'customfont1');
+                        });
+                    }
+                };
+
+                // Main trial (card flipping)
+                cardChoice = {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: function () {
+                        let realBlock = blockOrder[globalBlock - 1];
+                        let cards = getCardsForBlock(realBlock);
+                        window.thisBlockCards = cards;
+                        window.trialStartTime = performance.now();
+                        window.flippedRoles = [];
+
+                        let html = carnieWisdom[realBlock - 1];
+                        html += '<div style="text-align:center; margin-top:20px;">';
+                        cards.forEach((card) => {
+                            html +=
+                                `<img src="${card.front}"
+                                    class="card-front"
+                                    style="width:217px; height:410px; margin:10px;"
+                                    data-back="${card.back}"
+                                    data-role="${card.role}"
+                                >`;
+                        });
+                        html += '</div>';
+
+                        html +=
+                            `<div class="button-container">
+                                <button class="flip-button instruction-nav-btn" id="flip-selected" disabled>FLIP</button>
+                                <button class="instruction-nav-btn" style="width:40%; height:2em;" id="next-button" disabled>Next</button>
+                            </div>`;
+                        return html;
+                    },
+                    choices: [],
+                    on_load: function () {
+                        chosenCards = [];
+                        window.selectionLog = [];
+
+                        const flipBtn = document.getElementById('flip-selected');
+                        const nextBtn = document.getElementById('next-button');
+                        nextBtn.disabled = true;
+
+                        let trialIndex = globalBlock;
+                        // Decide how many cards can be flipped
+                        let maxFlipsAllowed =
+                            (trialIndex <= 3)
+                            ? 3
+                            : (allowTwoFlips ? 2 : 3);
+
+                        // Event listeners for card selection
+                        document.querySelectorAll('.card-front').forEach(cardEl => {
+                            cardEl.addEventListener('click', function () {
+                                if (cardEl.classList.contains('flipped')) return;
+                                const r = cardEl.getAttribute('data-role');
+                                if (this.classList.contains('selected')) {
+                                    this.classList.remove('selected');
+                                    chosenCards = chosenCards.filter(x => x !== r);
+                                    window.selectionLog.push({
+                                        time: performance.now(),
+                                        action: 'deselect',
+                                        role: r
+                                    });
+                                } else if (chosenCards.length < maxFlipsAllowed) {
+                                    this.classList.add('selected');
+                                    chosenCards.push(r);
+                                    window.selectionLog.push({
+                                        time: performance.now(),
+                                        action: 'select',
+                                        role: r
+                                    });
+                                }
+                                flipBtn.disabled = (chosenCards.length === 0);
+                            });
+                        });
+
+                        // Actual flip
+                        function flipOnce() {
+                            document.querySelectorAll('.card-front').forEach(el => {
+                                el.removeEventListener('click', arguments.callee);
+                            });
+                            window.flipTime = performance.now();
+                            window.flippedRoles = [...chosenCards];
+                            chosenCards.forEach(r => {
+                                const el = [...document.querySelectorAll('.card-front')]
+                                    .find(e => e.getAttribute('data-role') === r);
+                                if (el) {
+                                    el.src = el.getAttribute('data-back');
+                                    el.classList.remove('selected');
+                                    el.classList.add('flipped');
+                                }
+                            });
+                            chosenCards = [];
+                            flipBtn.disabled = true;
+                            flipBtn.style.display = 'none';
+                            flipBtn.removeEventListener('click', flipOnce);
+                            nextBtn.disabled = false;
+                            nextBtn.style.display = 'block';
+                        }
+
+                        flipBtn.addEventListener('click', flipOnce);
+                        nextBtn.style.display = 'none';
+
+                        nextBtn.addEventListener('click', function () {
+                            jsp.finishTrial();
+                        });
+                    },
+                    on_finish: function (data) {
+                        let realBlock = blockOrder[globalBlock - 1];
+                        data.selectionLog = window.selectionLog || [];
+                        data.rtFlip = window.flipTime || null;
+                        let flippedSrcs = [];
+                        const allCards = document.querySelectorAll('.card-front');
+                        allCards.forEach(card => {
+                            if (card.classList.contains('flipped')) {
+                                flippedSrcs.push(card.src);
+                            }
+                        });
+                        data.chosenCards = flippedSrcs;
+                        let rolesFlipped = window.flippedRoles || [];
+                        data.CC = rolesFlipped.includes("CC");
+                        data.CI = rolesFlipped.includes("CI");
+                        data.DC = rolesFlipped.includes("DC");
+                        data.DI = rolesFlipped.includes("DI");
+                        data.blockCardsFaceUp   = window.thisBlockCards.map(c => c.front);
+                        data.blockCardsFaceDown = window.thisBlockCards.map(c => c.back);
+                        data.username = studySessionData.username;
+                        data.task = studySessionData.nCompleted + 1;
+                        data.rule = ruleStrings[ realBlock - 1 ];
+                        data.condition = allowTwoFlips ? "twoMax" : "threeMax";
+                        let numCorrect = 0;
+                        let numIncorrect = 0;
+                        if (data.CC) numCorrect++;
+                        if (data.DC) numCorrect++;
+                        if (data.CI) numIncorrect++;
+                        if (data.DI) numIncorrect++;
+                        let pointsThisTrial = (20 * numCorrect) - (10 * numIncorrect);
+                        totalPoints += pointsThisTrial;
+                        if (totalPoints < 0) totalPoints = 0;
+                        if (globalTrial == trialsPerBlock) {
+                            globalBlock++;
+                            globalTrial = 1;
+                        } else {
+                            globalTrial++;
+                        }
+                    }
+                };
+
+                // Add instructions
+                timeline.push(instructions1);
+                timeline.push(instructions1b);
+
+                // Re-define these again (used after finishing some blocks)
+                var showScoreAfterThree = {
+                    type: jsPsychInstructions,
+                    pages: [],
+                    show_clickable_nav: true,
+                    button_label_next: "Next",
+                    on_start: function(trial) {
+                        trial.pages = [
+                            '<div class="instruction-container"><div class="instruction-text">'+
+                            'You have earned ' + totalPoints +
+                            ' points so far out of a maximum of 120' +
+                            '</div></div>'
+                        ];
+                    },
+                    on_load: function() {
+                        document.querySelectorAll('.jspsych-btn').forEach(btn => {
+                            btn.classList.add('confirm-button', 'customfont1');
+                        });
+                    }
+                };
+
+                var showScoreAfterSeven = {
+                    type: jsPsychInstructions,
+                    pages: [],
+                    show_clickable_nav: true,
+                    button_label_next: "Next",
+                    button_label_previous: "Previous",
+                    on_start: function(trial) {
+                        trial.pages = [
+                            '<div class="instruction-container"><div class="instruction-text">'+
+                            'You have earned ' + totalPoints +
+                            ' points so far out of a maximum of 280' +
+                            '</div></div>'
+                        ];
+                    },
+                    on_load: function() {
+                        document.querySelectorAll('.jspsych-btn').forEach(btn => {
+                            btn.classList.add('confirm-button', 'customfont1');
+                        });
+                    }
+                };
+
+                // Add each block and optional score instructions
+                for (var i = 1; i <= blocks; i++) {
+                    timeline.push({
+                        timeline: generateBlock(i),
+                        timeline_variables: [{ block: i }]
+                    });
+                    if (i === 3) {
+                        timeline.push(showScoreAfterThree);
+                        if (allowTwoFlips) {
+                            timeline.push(instructions2b);
+                        }
+                    }
+                    if (i === 7) {
+                        timeline.push(showScoreAfterSeven);
+                    }
+                }
+
+                // End message
+                timeline.push({
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function () {
+                        return '<div class="instruction-container"><div class="instruction-text">Thank you for participating!<br>Your total points: <b>'
+                                + totalPoints + '</b></div></div>';
+                    },
+                    choices: "NO_KEYS",
+                    trial_duration: 3000,
+                    on_finish: function () {
+                        endOfExperiment();
+                    }
+                });
+            }
+
+            // Cards for each block (shuffled each time)
+            function getCardsForBlock(block) {
+                var cards = [];
+                if (block === 1) {
+                    cards = [
+                        { front:'img/wason_card_abs_sq1.jpg', back:'img/wason_card_vowel1.jpg',    role:'CC' },
+                        { front:'img/wason_card_circ1.jpg',   back:'img/wason_card_consonant1.jpg', role:'DI' },
+                        { front:'img/wason_card_consonant2.jpg', back:'img/wason_card_circ2.jpg',  role:'DC' },
+                        { front:'img/wason_card_vowel2.jpg',  back:'img/wason_card_abs_sq2.jpg',   role:'CI' }
+                    ];
+                } else if (block === 2) {
+                    cards = [
+                        { front:'img/wason_card_moonleft1.jpg', back:'img/wason_card_color_red.jpg',   role:'CC' },
+                        { front:'img/wason_card_abs_sq1.jpg',   back:'img/wason_card_color_green.jpg', role:'DI' },
+                        { front:'img/wason_card_color_green.jpg', back:'img/wason_card_abs_sq2.jpg',   role:'DC' },
+                        { front:'img/wason_card_color_red.jpg', back:'img/wason_card_moonleft2.jpg',   role:'CI' }
+                    ];
+                } else if (block === 3) {
+                    cards = [
+                        { front:'img/wason_card_bird_l1.jpg', back:'img/wason_card_even1.jpg',  role:'CC' },
+                        { front:'img/wason_card_anleft1.jpg', back:'img/wason_card_odd1.jpg',   role:'DI' },
+                        { front:'img/wason_card_odd2.jpg',    back:'img/wason_card_anright2.jpg', role:'DC' },
+                        { front:'img/wason_card_even2.jpg',   back:'img/wason_card_bird_l2.jpg', role:'CI' }
+                    ];
+                } else if (block === 4) {
+                    cards = [
+                        { front:'img/wason_card_anleft1.jpg',  back:'img/wason_card_consonant1.jpg', role:'CC' },
+                        { front:'img/wason_card_bird_l1.jpg',  back:'img/wason_card_vowel1.jpg',     role:'DI' },
+                        { front:'img/wason_card_vowel2.jpg',   back:'img/wason_card_bird_l2.jpg',    role:'DC' },
+                        { front:'img/wason_card_consonant2.jpg', back:'img/wason_card_anright2.jpg', role:'CI' }
+                    ];
+                } else if (block === 5) {
+                    cards = [
+                        { front:'img/wason_card_color_red.jpg', back:'img/wason_card_odd1.jpg',    role:'CC' },
+                        { front:'img/wason_card_color_blue.jpg', back:'img/wason_card_even1.jpg', role:'DI' },
+                        { front:'img/wason_card_even2.jpg',     back:'img/wason_card_color_blue.jpg', role:'DC' },
+                        { front:'img/wason_card_odd2.jpg',      back:'img/wason_card_color_red.jpg',  role:'CI' }
+                    ];
+                } else if (block === 6) {
+                    cards = [
+                        { front:'img/wason_card_color_blue.jpg', back:'img/wason_card_squir2.jpg',  role:'CC' },
+                        { front:'img/wason_card_color_red.jpg',  back:'img/wason_card_anleft1.jpg', role:'DI' },
+                        { front:'img/wason_card_anright2.jpg',   back:'img/wason_card_color_red.jpg', role:'DC' },
+                        { front:'img/wason_card_squir2.jpg',     back:'img/wason_card_color_blue.jpg', role:'CI' }
+                    ];
+                } else if (block === 7) {
+                    cards = [
+                        { front:'img/wason_card_color_green.jpg', back:'img/wason_card_bird_l1.jpg',   role:'CC' },
+                        { front:'img/wason_card_color_blue.jpg',  back:'img/wason_card_anleft1.jpg',   role:'DI' },
+                        { front:'img/wason_card_anright2.jpg',    back:'img/wason_card_color_blue.jpg', role:'DC' },
+                        { front:'img/wason_card_bird_l2.jpg',     back:'img/wason_card_color_green.jpg', role:'CI' }
+                    ];
+                } else if (block === 8) {
+                    cards = [
+                        { front:'img/wason_card_vowel1.jpg',     back:'img/wason_card_abs_sq1.jpg', role:'CC' },
+                        { front:'img/wason_card_consonant1.jpg', back:'img/wason_card_circ1.jpg',   role:'DI' },
+                        { front:'img/wason_card_circ2.jpg',      back:'img/wason_card_consonant2.jpg', role:'DC' },
+                        { front:'img/wason_card_abs_sq2.jpg',    back:'img/wason_card_vowel2.jpg', role:'CI' }
+                    ];
+                } else if (block === 9) {
+                    cards = [
+                        { front:'img/wason_card_consonant1.jpg', back:'img/wason_card_moonleft1.jpg',  role:'CC' },
+                        { front:'img/wason_card_vowel1.jpg',      back:'img/wason_card_abs_sq1.jpg',    role:'DI' },
+                        { front:'img/wason_card_abs_sq2.jpg',     back:'img/wason_card_vowel2.jpg',     role:'DC' },
+                        { front:'img/wason_card_moonleft2.jpg',   back:'img/wason_card_consonant2.jpg', role:'CI' }
+                    ];
+                } else if (block === 10) {
+                    cards = [
+                        { front:'img/wason_card_even1.jpg',  back:'img/wason_card_anleft1.jpg', role:'CC' },
+                        { front:'img/wason_card_odd1.jpg',   back:'img/wason_card_bird_l1.jpg', role:'DI' },
+                        { front:'img/wason_card_bird_l2.jpg', back:'img/wason_card_odd2.jpg',   role:'DC' },
+                        { front:'img/wason_card_anright2.jpg', back:'img/wason_card_even2.jpg', role:'CI' }
+                    ];
+                } else if (block === 11) {
+                    cards = [
+                        { front:'img/wason_card_odd1.jpg',        back:'img/wason_card_color_blue.jpg',  role:'CC' },
+                        { front:'img/wason_card_even1.jpg',       back:'img/wason_card_color_red.jpg',    role:'DI' },
+                        { front:'img/wason_card_color_red.jpg',   back:'img/wason_card_even2.jpg',        role:'DC' },
+                        { front:'img/wason_card_color_blue.jpg',  back:'img/wason_card_odd2.jpg',         role:'CI' }
+                    ];
+                } else if (block === 12) {
+                    cards = [
+                        { front:'img/wason_card_squir2.jpg',    back:'img/wason_card_color_green.jpg', role:'CC' },
+                        { front:'img/wason_card_anleft1.jpg',   back:'img/wason_card_color_blue.jpg',  role:'DI' },
+                        { front:'img/wason_card_color_blue.jpg', back:'img/wason_card_anright2.jpg',   role:'DC' },
+                        { front:'img/wason_card_color_green.jpg', back:'img/wason_card_squir2.jpg',    role:'CI' }
+                    ];
+                }
+                return jsp.randomization.shuffle(cards);
+            }
+        </script>
+    </body>
+</html>

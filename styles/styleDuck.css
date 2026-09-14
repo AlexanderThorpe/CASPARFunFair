@@ -1,0 +1,187 @@
+body {
+    background-image: url('../img/duckBackgroundMJ.jpg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% 100%;
+    border: 0px;
+    margin: 0px;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+div {
+    display: inline;
+}
+
+.stageDiv {
+    position: absolute;
+    width: 78%;
+    height: 34.5%;
+    top: 23%;
+    bottom: 57.5%;
+    left: 11%;
+    right: 89%;
+    border: 0px;
+    margin: 0px;
+}
+
+.duckDiv {
+    display: inline;
+    position: absolute;
+    width: 20%;
+    height: 100%;
+    top: 0%;
+    bottom: 100%;
+    border: 0px;
+    margin: 0px;
+}
+
+img {
+    width: 100%;
+    height: 100%;
+}
+
+.duckImg {
+    position: absolute;
+    display: inline;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+}
+
+.duckKey {
+    position: absolute;
+    z-index: 15;
+    left: 38%;
+    top: 60%;
+    width: 20%;
+    height: auto;
+}
+
+.duckMask {
+    position: absolute;
+    display: inline;
+    visibility: hidden;
+    z-index: 20;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+}
+
+.choice-page {
+    position: absolute;
+    top: 2%;
+    left: 12.5%;
+    width: 75%;
+    z-index: 30;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    color: #000;
+    font-size: 1.5em;
+    text-rendering: auto;
+    text-align: center;
+    display: block;
+    -webkit-font-smoothing: antialiased;
+}
+
+.choice-div {
+    position: absolute;
+    padding: 0px 0px;
+    height: 5em;
+    width: 20%;
+    top: 10%;
+    bottom: 0%;
+    margin: 10px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1em;
+}
+
+.continue-div {
+    padding: 0px 0px;
+    height: 5em;
+    width: 20%;
+    top: 10%;
+    bottom: 3%;
+    margin: 10px auto;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    display: block;
+    font-size: 1em;
+}
+
+.choice-button {
+    background-color: #555555;
+    border: none;
+    color: white;
+    width: 50%;
+    height: 100%;
+    font-size: 1.2em;
+}
+
+.choice-button:hover {
+    background-color: #6f6f6f;
+}
+
+.choice-button:disabled {
+    background-color: #555555;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.trialBox {
+    position: absolute;
+    display: block;
+    border-radius: 10px;
+    border: 2px solid #000000;
+    bottom: 5%;
+    left: 10%;
+    width: 15%;
+    height: 25%;
+    background: #f0dad5;
+    color: #d3cd1e;
+    padding: 5px 32px;
+}
+
+.gallery {
+    display: grid;
+    position: absolute;
+    width: 95%;
+    height: 95%;
+    top: 5%;
+    left: 5%;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+  }
+
+.gallery-img {
+    width: 100%;
+    height: 100%;
+    /* object-fit: cover;
+    display: block;  */
+}
+
+.scoreBox {
+    position: absolute;
+    display: block;
+    bottom: 5%;
+    left: 44%;
+    width: 8%;
+    justify-content: center;
+    background: #a90707;
+    color: #d3cd1e;
+    padding: 5px 32px;
+    font-size: 2em;
+    text-rendering: auto;
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+}
+
+.redirect {
+    padding: 2%;
+}

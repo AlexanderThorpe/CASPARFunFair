@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortune Teller Tent</title>
+
+    <!-- Load jsPsych v8.0 and its plugins correctly -->
+    <script src="jspsych-8.0/jspsych.js"></script>
+    <script src="jspsych-8.0/plugin-html-button-response.js"></script>
+    <script src="jspsych-8.0/plugin-image-button-response.js"></script>
+    <script src="jspsych-8.0/plugin-instructions.js"></script>
+
+    <!-- Load the correct CSS for jsPsych v8.0 -->
+    <link rel="stylesheet" href="jspsych-8.0/jspsych.css">
+
+    <link href="styles/style.css" rel="stylesheet" />
+    <link href="styles/styleCards.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+
+    <body>
+
+        <div id="scoreDisplay" class="customfont" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 24px; background: white; padding: 10px; border-radius: 10px;">
+            Score: 0
+        </div>
+
+        <div class="loading customfont" style="background-image: url('img/loading_page1.jpg'); z-index: 100;">
+        </div>
+
+        <div class="prizeDiv" id="prizeDiv" style="background-image: url('img/prizeHead.png')">
+            <div class="prizeHead">
+            </div>
+            <div class="starDiv" style="background-image: url('img/starBack.png'); left: 29%">
+                <img class="prizeImg" id="starImg">
+            </div>
+            <!-- <div class="teddyDiv" style="left: 27%">
+                <img class="prizeImg" id="teddyImg">
+                <img class="prizeImg" id="nameTag">
+            </div> -->
+        </div>
+
+        <div id="nextPage" class="redirect customfont" style="visibility: hidden">
+            <p>
+                Well done, you've finished this game!<br>
+                Now let's play another game.
+            </p>
+        </div>
+
+        <script src="/assets/javascripts/jatos.js"></script>
+
+        <script>
+            jatos.onLoad(function() {
+                studySessionData = jatos.studySessionData;
+                username = studySessionData["username"];
+            });
+
+            $(window).bind("beforeunload", function(){
+                return confirm(); 
+            });
+
+            const jsPsych = initJsPsych();  // ✅ Use 'initJsPsych()' for version 8
+
+            const card_back = 'img/card_back.jpg';
+            const card_win_back = 'img/card_win_back.jpg';
+            const card_front = 'img/card_front.jpg';
+            const card_distinct_front = 'img/card_distinct_front.jpg';
+            const card_distinct_level2_front = 'img/card_distinct_level2_front.jpg';  // Level 2 distinct card
+            const submit_button_img = 'img/submit.jpg';  // ✅ New submit button
+
+            let trials = [];
+            var block1_choices = { preselected: 0, distinct: 0, preselected_total: 0, distinct_total: 0 };
+            let score = 0;  // ✅ Add a score counter
+
+            var studySessionData;
+            var username;
+            var dataOutput = [];
+            var trialType;
+            var increaseOdds = false;
+            
+            var cardsImg = ['img/loading_page1.jpg', 'img/prizeHead.png', 'img/starBack.png', 'img/star1.png', 'img/star2.png', 'img/star3.png', 'img/star4.png', 'img/star5.png', 'img/star6.png',
+            'img/star7.png', 'img/star8.png', 'img/fortune_teller_background_multiplenum.jpg', 'img/fortune_teller_background.jpg'];
+
+            preLoader(cardsImg);
+
+            // UNCOMMENT FOR JATOS DEPLOYMENT
+            waitForJATOS();
+
+            // Check whether JATOS has loaded before initialising
+            function waitForJATOS() {
+                let name = username;
+                if (name !== undefined) {
+                    init();
+                }
+                else {
+                    setTimeout(waitForJATOS, 300);
+                }
+            }
+
+            // Preload images
+            function preLoader(imgList) {
+                for (i = 0; i < imgList.length; i++) {
+                    let img = new Image();
+                    img.src = imgList[i];
+                }
+            }
+
+            // Initialise the experiment
+            function init() {
+                $(".loading").fadeOut("slow");
+                if (studySessionData.triviaMiss >= 3) {
+                    document.body.style.backgroundImage = 'url(img/fortune_teller_background_multiplenum.jpg)'
+                }
+                makeTimeline();
+                document.getElementById("starImg").src = "img/star" + studySessionData.nStars + ".png";
+                // Start experiment
+                jsPsych.run(trials);
+            }
+
+            function updateScoreDisplay() {
+                document.getElementById("scoreDisplay").textContent = `Score: ${score}`;
+            }
+
+            // Save data, go to next component
+            function endOfExperiment() {
+                $(window).unbind("beforeunload");
+
+                // document.getElementById("nextPage").style.visibility = 'visible';
+
+                studySessionData.nCompleted++;
+                studySessionData.totalPoints = studySessionData.totalPoints + score;
+                taskIndex = studySessionData.taskIndex;
+                studySessionData.taskIndex = taskIndex.slice(1);
+
+                studySessionData.completedTasks["cards"] = true;
+                studySessionData.cameFrom = "cards";
+
+                // dataOutput = jsPsych.data.get().csv();
+                // let csvContent = "data:text/csv;charset=utf-8,";
+                let data = jsPsych.data.get().filterCustom(trial => trial.custom_trial_type).values();
+
+                // ✅ Updated CSV Header to include new columns
+                let csvContent = "trial,trial_type,choice,reaction_time,win,default_card_number,distinct_card_number\n";
+
+                // ✅ Include new columns in each row
+                data.forEach((trial, index) => {
+                    csvContent += `${index + 1},${trial.custom_trial_type},${trial.choice},${trial.reaction_time},${trial.win},${trial.default_card_number},${trial.distinct_card_number}\n`;
+                });
+
+                // dataOutput = encodeURI(csvContent);
+                dataOutput = csvContent;
+
+                // Uncomment below for JATOS deployment
+                jatos.studySessionData = studySessionData;
+
+                
+                let filename = "ID" + username + "Cards_Stage3_Data.csv";
+
+                // Uncomment below for JATOS deployment
+                setTimeout(() => {
+                    jatos.uploadResultFile(dataOutput, filename)
+                    .then(() => jatos.startComponentByPos(11));
+                }, 3000);
+            }
+
+            function createTrials(blockNumber) {
+                let newTrials = [];
+
+                for (let i = 0; i < 40; i++) {
+                    let customtrialType = "normal";  
+                    let hasPreselected = Math.random() < 0.5;
+                    let hasDistinct = Math.random() < 0.5;
+                    if (hasPreselected && hasDistinct) customtrialType = "both";
+                    else if (hasPreselected) customtrialType = "default";
+                    else if (hasDistinct) customtrialType = "distinct";
+
+                    let preselectedIndex = hasPreselected ? Math.floor(Math.random() * 5) : -1;
+                    let distinctIndex = hasDistinct ? Math.floor(Math.random() * 5) : -1;
+                    if (customtrialType === "both") {
+                        while (distinctIndex === preselectedIndex) { 
+                            distinctIndex = Math.floor(Math.random() * 5);
+                        }
+                    }
+
+                    newTrials.push({
+                        type: jsPsychHtmlButtonResponse,
+                        stimulus: "",
+                        choices: [],
+                        on_load: function() {
+                            let container = document.createElement("div");
+                            container.style.display = "flex";
+
+                            let selectedCard = null;
+                            let startTime = performance.now();
+
+                            for (let j = 0; j < 5; j++) {
+                                let card = document.createElement("img");
+                                card.src = card_front;
+                                card.classList.add("card");
+                                card.dataset.index = j;
+
+                                if (j === preselectedIndex) card.classList.add("selected");
+                                if (j === distinctIndex) {
+                                    card.src = (blockNumber === 2 && increaseOdds) ? card_distinct_level2_front : card_distinct_front;
+                                }
+
+                                card.onclick = function() {
+                                    document.querySelectorAll(".card").forEach(c => c.classList.remove("selected"));
+                                    card.classList.add("selected");
+                                    selectedCard = j;
+                                };
+
+                                container.appendChild(card);
+                            }
+
+                            let jspsychContent = document.querySelector(".jspsych-content");
+                            if (jspsychContent) {
+                                jspsychContent.appendChild(container);
+                            }
+
+                            let submitButton = document.createElement("img");
+                            submitButton.src = submit_button_img;
+                            submitButton.classList.add("jspsych-submit-btn");
+                            submitButton.style.cursor = "pointer";
+                            submitButton.onclick = function() {
+                                // If no card has been clicked, default to the preselected card (if it exists)
+                                if (selectedCard === null && hasPreselected) {
+                                    selectedCard = preselectedIndex;
+                                }
+
+                                // If there's still no selected card (no preselected card and no click), show alert
+                                if (selectedCard === null) {
+                                    alert("Please select a card before submitting.");
+                                    return;
+                                }
+
+                                submitButton.onclick = null;
+                                let cards = document.getElementsByClassName("card");
+                                for (let j = 0; j < cards.length; j++) {
+                                    let card = cards[j];
+                                    card.onclick = null;
+                                }
+
+                                let preselected_win_probability = increaseOdds ? 0.75 : 0.2;
+                                let distinct_win_probability = blockNumber === 2 ? 0.5 : 0.2;
+
+                                let reactionTime = performance.now() - startTime;
+                                let isWin = Math.random() < (selectedCard === preselectedIndex ? preselected_win_probability :
+                                                            selectedCard === distinctIndex ? distinct_win_probability : 0.2);
+                                let selectedBack = isWin ? card_win_back : card_back;
+
+                                document.querySelectorAll(".card")[selectedCard].src = selectedBack;
+                                setTimeout(() => {
+                                    jsPsych.finishTrial({
+                                        custom_trial_type: customtrialType,
+                                        choice: selectedCard,
+                                        reaction_time: reactionTime,
+                                        win: isWin,
+                                        default_card_number: hasPreselected ? preselectedIndex : "false",  // ✅ 1-based index or "false"
+                                        distinct_card_number: hasDistinct ? distinctIndex : "false"  // ✅ 1-based index or "false"
+                                    });
+                                }, 1000);
+
+                                if (isWin) {
+                                    score += 20;
+                                    updateScoreDisplay();
+                                }
+
+                                if (blockNumber === 1) {
+                                    trialType = customtrialType;
+                                    if (trialType === "default") {
+                                        block1_choices.preselected_total++;
+                                        if (selectedCard === preselectedIndex) block1_choices.preselected++;
+                                    }
+                                    if (trialType === "distinct") {
+                                        block1_choices.distinct_total++;
+                                        if (selectedCard === distinctIndex) block1_choices.distinct++;
+                                    }
+                                    if (i == 9) {
+                                        // Determine if odds should be increased
+                                        increaseOdds = shouldIncreaseOdds();
+                                    }
+                                }
+                            };
+
+                            if (jspsychContent) {
+                                jspsychContent.appendChild(submitButton);
+                            }
+                        }
+                    });
+                }
+                return newTrials;
+            }
+
+            function shouldIncreaseOdds() {
+                let preselectedRatio = block1_choices.preselected / Math.max(1, block1_choices.preselected_total);
+                let distinctRatio = block1_choices.distinct / Math.max(1, block1_choices.distinct_total);
+
+                return preselectedRatio > 0.5 || distinctRatio > 0.5;  // ✅ Increase odds if either is >50%
+            }
+
+
+            function makeTimeline() {
+                trials.push({
+                    type: jsPsychInstructions,
+                    pages: ['<div class="instruction-container customfont"><br><br><br><span style="font-size:14pt">Welcome to the fortune teller\'s tent!<br>\
+                    Here you can try your luck at finding the magical purple card!<br>\
+                    Click a card to select it, then press Submit to flip and check if you won 20 points!'],
+                    show_clickable_nav: true
+                });
+
+                // Add Block 1 trials
+                trials.push(...createTrials(1));
+
+                // Instead of a transition screen, directly start Block 2
+
+                // Generate Block 2 trials with updated logic
+                trials.push(...createTrials(2));
+
+
+                trials.push({
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: function() {
+                        document.getElementById("nextPage").style.visibility = 'visible';
+                        return [];
+                    },
+                    choices: [],
+                    on_finish: function() {
+                        endOfExperiment();
+                        // let csvContent = "data:text/csv;charset=utf-8,";
+                        // let data = jsPsych.data.get().filterCustom(trial => trial.custom_trial_type).values();
+
+                        // // ✅ Updated CSV Header to include new columns
+                        // csvContent += "trial,trial_type,choice,reaction_time,win,default_card_number,distinct_card_number\n";
+
+                        // // ✅ Include new columns in each row
+                        // data.forEach((trial, index) => {
+                        //     csvContent += `${index + 1},${trial.custom_trial_type},${trial.choice},${trial.reaction_time},${trial.win},${trial.default_card_number},${trial.distinct_card_number}\n`;
+                        // });
+
+                        // let encodedUri = encodeURI(csvContent);
+                        // let link = document.createElement("a");
+                        // link.setAttribute("href", encodedUri);
+                        // link.setAttribute("download", "experiment_data.csv");
+                        // document.body.appendChild(link);
+                        // link.click();
+                        // document.body.removeChild(link);
+                    },
+                    trial_duration: 0
+                });
+            }
+        </script>
+    </body>
+</html>

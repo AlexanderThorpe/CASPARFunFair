@@ -1,0 +1,287 @@
+html {
+    color: #404040;
+    font: 400 15px / 1.5 Karla, Arial, sans-serif;
+}
+
+body {
+    background-color: #ffffff;
+}
+
+div {
+    display: block;
+    unicode-bidi: isolate;
+}
+
+header {
+    display: block;
+    unicode-bidi: isolate;
+}
+
+@font-face {
+    font-family: "FunFairFont";
+    src: url(../fonts/KeeponTruckin.ttf) format("truetype");
+}
+
+@font-face {
+    font-family: "FunFairFont1";
+    src: url(../fonts/Carnevalee_Freakshow.ttf) format("truetype");
+}
+
+p {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    unicode-bidi: isolate;
+}
+
+.customfont { 
+    font-family: "FunFairFont", Verdana, Tahoma;
+}
+
+.customfont1 {
+    font-family: "FunFairFont1", Verdana, Tahoma;
+}
+
+img {
+    height: 40%;
+}
+
+.italic {
+    font-style: italic;
+}
+
+/* Frog Guide Menu Stuff */
+.field-guide > header {
+    background: #000;
+    color: #fff;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: box;
+    display: flex;
+    -webkit-box-orient: horizontal;
+    -moz-box-orient: horizontal;
+    -o-box-orient: horizontal;
+    -webkit-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    -webkit-box-pack: justify;
+    -moz-box-pack: justify;
+    -o-box-pack: justify;
+    -ms-flex-pack: justify;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    letter-spacing: .2ch;
+    padding: 1em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.field-guide-pullout-toggle {
+    background: #000;
+    border: solid thin #ebebeb;
+    border-radius: 0;
+    color: #fff;
+    font-size: 2.2em;
+    letter-spacing: .1ch;
+    padding: .25em 1em 0;
+    position: absolute;
+    right: 100%;
+    text-transform: uppercase;
+    top: 33%;
+    -webkit-transform: rotate(-90deg) translateX(50%);
+    -moz-transform: rotate(-90deg) translateX(50%);
+    -o-transform: rotate(-90deg) translateX(50%);
+    -ms-transform: rotate(-90deg) translateX(50%);
+    transform: rotate(-90deg) translateX(50%);
+    -webkit-transform-origin: right bottom;
+    -moz-transform-origin: right bottom;
+    -o-transform-origin: right bottom;
+    -ms-transform-origin: right bottom;
+    transform-origin: right bottom;
+    white-space: nowrap;
+}
+
+.field-guide-pullout {
+    background: #000;
+    bottom: 3vh !important;
+    -webkit-box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    color: #fff;
+    font-size: 14px;
+    top: 3vh !important;
+    -webkit-transition: -webkit-transform 150ms ease;
+    -moz-transition: -moz-transform 150ms ease;
+    -o-transition: -o-transform 150ms ease;
+    -ms-transition: -ms-transform 150ms ease;
+    transition: transform 150ms ease;
+    width: 40vw;
+    z-index: 1;
+}
+
+.field-guide-item-content-container {
+    padding: 0 2em;
+}
+
+.field-guide-item-title-container {
+    font-size: 2em;
+    text-align: center;
+}
+
+.field-guide-item {
+    background: #fff;
+    color: #000;
+    height: 100vh;
+    overflow: auto;
+}
+
+.fa-fw {
+    width: 1.28571429em;
+    text-align: center;
+}
+
+.fa {
+    display: inline-block;
+    font: normal normal normal 14px / 1 FontAwesome;
+    font-size: inherit;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+
+.fa-times:before {
+    content: "\f00d";
+}
+/* Main Task Stuff */
+.instruct-page {
+    min-width: 25%;
+    max-width: 75%;
+    position: relative;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: center;
+    background: #ffffff;
+    color: #000;
+    font-size: 1.5em;
+    text-rendering: auto;
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+}
+
+.redirect {
+    min-width: 25%;
+    max-width: 75%;
+    position: relative;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: center;
+    background: #ffffff;
+    color: #000;
+    font-size: 1.5em;
+    text-rendering: auto;
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+}
+
+.loading {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    font-size: 3em;
+    justify-content: center;
+    text-align: center;
+    /* background-image: url(../img/loading_page1.png); */
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    border: 0px;
+    padding: 0px;
+    margin: 0px 0px;
+    z-index: 100;
+}
+
+.prizeDiv {
+    position: absolute;
+    width: 20%;
+    height: auto;
+    aspect-ratio: 2;
+    z-index: 15;
+    bottom: 2%;
+    right: 2%;
+    background-repeat: no-repeat;
+    background-attachment: local;
+    background-size: cover;
+    background-position: center;
+    border: 0px;
+    padding: 0px;
+    margin: 0px 0px;
+    pointer-events: none;
+}
+
+.starDiv {
+    position: absolute;
+    display: inline;
+    width: auto;
+    height: 85%;
+    aspect-ratio: 1;
+    left: 0%;
+    bottom: 0%;
+    background-repeat: no-repeat;
+    background-attachment: local;
+    background-size: cover;
+    background-position: center;
+    border: 0px;
+    padding: 0px;
+    margin: 0px 0px;
+    pointer-events: none;
+}
+
+.teddyDiv {
+    position: absolute;
+    display: inline;
+    width: auto;
+    height: 85%;
+    aspect-ratio: 1;
+    left: 50%;
+    bottom: 0%;
+    border: 0px;
+    padding: 0px;
+    margin: 0px 0px;
+    pointer-events: none;
+}
+
+.prizeImg {
+    position: absolute;
+    display: inline;
+    width: 100%;
+    height: 100%;
+    left: 0%;
+    top: 0%;
+    z-index: 20;
+    border: 0px;
+    padding: 0px;
+    margin: 0px 0px;
+    pointer-events: none;
+}
+
+.nameImg {
+    position: absolute;
+    display: inline;
+    width: auto;
+    height: 85%;
+    aspect-ratio: 1;
+    left: 50%;
+    bottom: 0%;
+    border: 0px;
+    padding: 0px;
+    margin: 0px 0px;
+    z-index: 25;
+    pointer-events: none;
+}

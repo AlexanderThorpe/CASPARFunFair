@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Fairground</title>
+        <link href="styles/style.css" rel="stylesheet" />
+        <link href="styles/styleLanding.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karla:400,700">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald:300,400">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    </head>
+    </head>
+    <body>
+
+        <div class="backImg">
+            <div class="tentDiv" id="tDiv1" style="left: 53.97%; top: 0.26%; width: 7.55%; height: 27.47%">
+            </div> 
+        </div>
+
+        <div class="overlayDiv" id="tent1" style="background-image: url(img/tentHover1.png); visibility: hidden"></div>
+        <div class="overlayDiv" id="tent2" style="background-image: url(img/tentHover2.png); visibility: hidden"></div>
+        <div class="overlayDiv" id="tent3" style="background-image: url(img/tentHover3.png); visibility: hidden"></div>
+        <div class="overlayDiv" id="tent4" style="background-image: url(img/tentHover4.png); visibility: hidden"></div>
+        <div class="overlayDiv" id="tent5" style="background-image: url(img/tentHover5.png); visibility: hidden"></div>
+        <div class="overlayDiv" id="tent6" style="background-image: url(img/tentHover6.png); visibility: hidden"></div>
+        <div class="overlayDiv" id="tent7" style="background-image: url(img/tentHover7.png); visibility: hidden"></div>
+        <div class="overlayDiv" id="tent8" style="background-image: url(img/tentHover8.png); visibility: hidden"></div>
+
+        <div id="instructionBox" class="instruct-page" style="visibility: hidden">
+            <p class="customfont">
+                <span id="instructions">Welcome to the fun fair! There are eight games for you to play.<br>
+                You can win points and prizes for finishing each game, and there are some bonuses too!<br>
+                To play each game, click on the tents around the edge of this map.<br>
+                By the way, if any of the games don't load correctly, try refreshing the page.</span>
+            </p>
+            <div class="choice-div" id="confirmBox">  
+                <button class="choice-button customfont" id="confirm" onclick="returnVisit()">LET'S GO!</button>
+            </div>
+        </div>
+
+        <div id="infoBox" class="info-page" style="visibility:hidden">
+            <p class="customfont">
+                <span id="info">Click on a tent to start the next game
+            </p>
+        </div>
+
+        <div id="scoreBox" class="scoreBox customfont" style="visibility: hidden">
+            <p>
+                <span id="score">TOTAL POINTS: 0</span>
+            </p>
+        </div>
+
+        <div class="loading customfont" style="background-image: url('img/loading_page1.jpg')">
+        </div>
+
+        <div class="prizeDiv" id="prizeDiv" style="background-image: url('img/prizeHead.png'); visibility: hidden">
+            <div class="prizeHead">
+            </div>
+            <div class="starDiv" style="background-image: url('img/starBack.png'); left: 29%">
+                <img class="prizeImg" id="starImg">
+            </div>
+            <!-- <div class="teddyDiv">
+                <img class="prizeImg" id="teddyImg">
+                <img class="prizeImg" id="nameTag">
+            </div> -->
+        </div>
+
+
+        <script src="/assets/javascripts/jatos.js"></script>
+        <script>
+            // What to do when jatos.js is finished initializing
+            //UNCOMMENT FOR JATOS DEPLOYMENT
+            jatos.onLoad(function() {
+                username = jatos.studySessionData["username"];
+                studySessionData = jatos.studySessionData;
+            });
+
+            var username;
+            var studySessionData;
+            var tentDivs = [{'left': 829, 'right': 945, 'top': 2, 'bottom': 213}, {'left': 1005, 'right': 1272, 'top': 41, 'bottom': 281},
+                {'left': 1070, 'right': 1370, 'top': 288, 'bottom': 527},{'left': 1013, 'right': 1200, 'top': 498, 'bottom': 698},
+                {'left': 340, 'right': 520, 'top': 504, 'bottom': 698},{'left': 106, 'right': 419, 'top': 336, 'bottom': 607},
+                {'left': 195, 'right': 387, 'top': 134, 'bottom': 320},{'left': 516, 'right': 696, 'top': 0, 'bottom': 203}];
+            var active = 0;
+            var winHeight = innerHeight;
+            var winWidth = innerWidth;
+            var tentsDone;
+            var landingImg = ['img/loading_page1.jpg', 'img/prizeHead.png', 'img/starBack.png', 'img/star1.png', 'img/star2.png', 'img/star3.png', 'img/star4.png', 'img/star5.png', 'img/star6.png',
+            'img/star7.png', 'img/star8.png', 'img/prizeHead.png', 'img/map_2.jpg', 'img/tentDone1.png', 'img/tentDone2.png', 'img/tentDone3.png', 'img/tentDone4.png', 'img/tentDone5.png',
+            'img/tentDone6.png', 'img/tentDone7.png', 'img/tentDone8.png', 'img/tentHover1.png', 'img/tentHover2.png', 'img/tentHover3.png', 'img/tentHover4.png', 'img/tentHover5.png',
+            'img/tentHover6.png', 'img/tentHover7.png', 'img/tentHover8.png'];
+
+            preLoader(landingImg);
+
+            // UNCOMMENT FOR JATOS DEPLOYMENT
+            waitForJATOS();
+
+            // Mouse position listener
+            document.addEventListener("mousemove", function (e) {
+                switch (active) {
+                    case 0:
+                        break;
+                    case 1:
+                        let newFlags = [];
+                        for (i = 0; i < tentDivs.length; i++) {
+                            divData = tentDivs[i];
+                            x_in = e.clientX <= divData.right * (winWidth / 1536) & e.clientX >= divData.left * (winWidth / 1536);
+                            y_in = e.clientY <= divData.bottom * (winHeight / 768) & e.clientY >= divData.top * (winHeight / 768);
+                            if (x_in & y_in & tentsDone[i] == 0) {
+                                newFlags.push(1);
+                            } else {
+                                newFlags.push(0);
+                            }
+                        }
+                        hovering(newFlags);
+                        break;
+                    default: // We should not be here
+                        console.log("active switch broke");
+                }
+            });
+
+            document.addEventListener("click", function (e) {
+                switch (active) {
+                    case 0:
+                        break;
+                    case 1:
+                        let newFlags = [];
+                        for (i = 0; i < tentDivs.length; i++) {
+                            divData = tentDivs[i];
+                            x_in = e.clientX <= divData.right * (winWidth / 1536) & e.clientX >= divData.left * (winWidth / 1536);
+                            y_in = e.clientY <= divData.bottom * (winHeight / 768) & e.clientY >= divData.top * (winHeight / 768);
+                            if (x_in & y_in & tentsDone[i] == 0) {
+                                newFlags.push(1);
+                            } else {
+                                newFlags.push(0);
+                            }
+                        }
+                        sum = newFlags.reduce((partialSum, a) => partialSum + a, 0);
+                        if (sum > 0) {
+                            tentClicked(newFlags);
+                        }
+                        break;
+                    default: // We should not be here
+                        console.log("click switch broke");
+                }
+            });
+
+            addEventListener("resize", (event) => {});
+                onresize = (event) => {
+                    winWidth = innerWidth;
+                    winHeight = innerHeight;
+                };
+
+            // EXPERIMENTAL FLOW FUNCTIONS
+
+            // Check whether JATOS has loaded before initialising
+            function waitForJATOS() {
+                let name = username;
+                if (name !== undefined) {
+                    let nCompleted = jatos.studySessionData.nCompleted;
+                    if (nCompleted == 8) {
+                        saveAndEnd();
+                    } else {
+                        init();
+                    }
+                }
+                else {
+                    setTimeout(waitForJATOS, 300);
+                }
+            }
+
+            // Initialise the experiment
+            function init() {
+                $(".loading").fadeOut("slow");
+                document.getElementById("prizeDiv").style.visibility = 'visible';
+                if (jatos.studySessionData.finished == true) {
+                    jatos.studySessionData.altFlag = 1;
+                    jatos.startComponentByPos(12);
+                }
+                document.getElementById("score").innerText = "TOTAL POINTS: " + studySessionData.totalPoints
+                document.getElementById("starImg").src = "img/star" + studySessionData.nStars + ".png";
+                tentsDone = studySessionData.tentsDone;
+                if (studySessionData.nCompleted == 0) {
+                    firstVisit();
+                } else {
+                    returnVisit();
+                }
+            }
+
+            // What to do when a tent is clicked
+            function tentClicked(tentVal) {
+                active = 0;
+                clickedVal = tentVal.findIndex((element) => element == 1);
+                tentsDone[clickedVal] = 1;
+                studySessionData.tentsDone = tentsDone;
+                whereNext = studySessionData.taskIndex[0] + 2;
+
+                // Uncomment for JATOS deployment
+                // jatos.setStudySessionData(studySessionData)
+                //     .then(() => jatos.startComponentByPos(2));
+                jatos.studySessionData = studySessionData;
+                jatos.startComponentByPos(whereNext);
+
+            }
+
+            function saveAndEnd() {
+                jatos.startComponentByPos(12);
+            }
+
+            // STIMULUS FUNCTIONS
+
+            // Set up the elements for first-time players
+            function firstVisit() {
+                document.getElementById("instructionBox").style.visibility = 'visible';
+            }
+
+            // Set up the elements for returning players
+            function returnVisit() {
+                document.getElementById("instructionBox").style.visibility = 'hidden';
+                document.getElementById("scoreBox").style.visibility = 'visible';
+                document.getElementById("infoBox").style.visibility = 'visible';
+                greyTents();
+                toggleTents('on');
+                setTimeout(() => {active = 1}, 500);
+            }
+
+            // Inactivate tents already done
+            function greyTents() {
+                let thisTent;
+                for (i = 0; i < tentsDone.length; i++) {
+                    switch (tentsDone[i]) {
+                        case 0:
+                            break;
+                        case 1:
+                            thisTent = "tent" + (i + 1);
+                            thisUrl = "'img/tentDone" + (i + 1) + ".png'";
+                            document.getElementById(thisTent).style.backgroundImage = "url(" + thisUrl + ")";
+                            tentDivs[i].left = tentDivs[i].left * -1;
+                            tentDivs[i].right = tentDivs[i].right * -1;
+                            tentDivs[i].top = tentDivs[i].top * -1;
+                            tentDivs[i].bottom = tentDivs[i].bottom * -1;
+                            document.getElementById(thisTent).style.visibility = 'visible';
+                            break;
+                        default: // We should not be here
+                            console.log("greyTent switch broke");
+                    }
+                }
+            }
+
+            // Make tents clickable and hoverable
+            function toggleTents(change) {
+                switch (change) {
+                    case 'on':
+
+                }
+            }
+
+            // Handle hovering
+            function hovering(flags) {
+                let thisTent;
+                for (i = 0; i < flags.length; i++) {
+                    switch(flags[i]) {
+                        case 1:
+                            thisTent = "tent" + (i + 1);
+                            document.getElementById(thisTent).style.visibility = "visible";
+                            break;
+                        case 0:
+                            thisTent = "tent" + (i + 1);
+                            if (tentsDone[i] == 0) {
+                                document.getElementById(thisTent).style.visibility = "hidden";
+                            }
+                            break;
+                        default: // We should not be here
+                            console.log("check switch broke");
+                    }
+                }
+            }
+
+            // Set up teddy image
+            function teddyPicker(vars) {
+                let source;
+                if (vars.acc2) {
+                    source = "img/teddy_everything.png";
+                    return source;
+                }
+                if (vars.acc1) {
+                    source = "img/teddy_lollipop.png";
+                    return source;
+                }
+                source = "img/teddy_name.png";
+                return source;
+            }
+
+            // Preload images
+            function preLoader(imgList) {
+                for (i = 0; i < imgList.length; i++) {
+                    let img = new Image();
+                    img.src = imgList[i];
+                }
+            }
+        </script>
+    </body>
+</html>
